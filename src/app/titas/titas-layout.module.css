@@ -1,0 +1,154 @@
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  box-shadow: var(--sidebar-shadow);
+}
+
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 99;
+  backdrop-filter: blur(4px);
+}
+
+.logoMark {
+  background: var(--brand-accent);
+  border: 1px solid var(--brand-accent);
+  color: #222121;
+  border-radius: 10px !important;
+}
+
+.logoName {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.logoSub {
+  font-size: 0.69rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Nav icon container – minimal & modern without colorful boxes */
+.navIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+
+/* Hover & Active overrides */
+:global(.nav-item:hover) .navIcon {
+  color: var(--text-primary);
+}
+
+:global(.nav-item.active) .navIcon {
+  color: var(--brand-accent) !important;
+}
+
+:global(.nav-item.active) {
+  background: var(--brand-accent-soft) !important;
+  color: var(--text-primary) !important;
+  border-color: transparent !important;
+}
+
+.sidebarBottom {
+  padding: 0.75rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.switchBtn {
+  font-size: 0.82rem;
+  color: var(--text-muted) !important;
+}
+.switchBtn:hover {
+  color: var(--text-primary) !important;
+}
+
+.userRow {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.875rem;
+}
+
+.userAvatar {
+  width: 32px; height: 32px; flex-shrink: 0;
+  background: var(--brand-accent);
+  border: 1px solid var(--brand-accent);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #222121;
+}
+
+.userInfo { flex: 1; min-width: 0; }
+.userName {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.userRole { font-size: 0.7rem; color: var(--text-muted); }
+
+.logoutBtn {
+  background: none; border: none;
+  color: var(--text-muted); cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 6px;
+  display: flex; align-items: center;
+  transition: all 0.15s;
+}
+.logoutBtn:hover { background: var(--surface2); color: var(--danger); }
+
+.menuBtn {
+  display: none !important;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.moduleBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--brand-accent-soft);
+  border: 1px solid var(--brand-accent);
+  padding: 0.3rem 0.875rem;
+  border-radius: 99px;
+}
+.moduleDot {
+  width: 6px; height: 6px;
+  background: var(--brand-accent);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(88, 2, 130, 0.4); }
+  50%       { box-shadow: 0 0 0 4px rgba(88, 2, 130, 0); }
+}
+
+@media (max-width: 768px) {
+  .menuBtn { display: flex !important; }
+}

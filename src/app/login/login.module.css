@@ -1,0 +1,209 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+
+.ambient {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+.ambientTitas {
+  background: radial-gradient(circle, rgba(88, 2, 130, 0.15) 0%, transparent 65%);
+}
+
+.ambientTM {
+  background: radial-gradient(circle, rgba(88, 2, 130, 0.15) 0%, transparent 65%);
+}
+
+.gridBg {
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none; z-index: 0;
+  opacity: 0.4;
+}
+
+.card {
+  position: relative; z-index: 10;
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.logoMark {
+  width: 44px; height: 44px; flex-shrink: 0;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--brand-accent);
+  background: var(--brand-accent-soft);
+  color: var(--brand-accent);
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+
+.titasMark, .tmMark {
+  border-color: var(--brand-accent);
+  color: var(--brand-accent);
+}
+
+.title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.moduleBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.4rem 0.875rem;
+  border-radius: 99px;
+  border: 1px solid var(--brand-accent);
+  background: var(--brand-accent-soft);
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  width: fit-content;
+}
+
+.moduleDot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--brand-accent);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+  color: var(--danger);
+  font-weight: 500;
+}
+
+.passWrap {
+  position: relative;
+}
+.passWrap input { padding-right: 2.75rem; }
+
+.showPass {
+  position: absolute;
+  right: 0.75rem; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  color: var(--text-muted); cursor: pointer;
+  padding: 0.25rem;
+  display: flex; align-items: center;
+  transition: color 0.15s;
+}
+.showPass:hover { color: var(--text-primary); }
+
+.submitBtn {
+  width: 100% !important;
+  justify-content: center !important;
+  padding: 0.75rem !important;
+  font-size: 0.9rem !important;
+  margin-top: 0.5rem;
+  background-color: var(--text-primary) !important;
+  color: var(--bg) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  transition: all 0.2s !important;
+  box-shadow: none !important;
+}
+.submitBtn:hover {
+  background-color: var(--brand-accent) !important;
+  color: #222121 !important;
+  opacity: 1 !important;
+}
+.submitBtn:disabled {
+  background-color: var(--surface2) !important;
+  color: var(--text-muted) !important;
+  opacity: 1 !important;
+}
+
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(128,128,128,0.3);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.backWrap {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+.back {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.back:hover { color: var(--text-primary); }
+
+.secNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
