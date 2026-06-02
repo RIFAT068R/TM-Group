@@ -157,18 +157,16 @@ export default function TitasAIPage() {
           dataContext: sales
         })
       })
-      if (!res.ok) throw new Error('API error')
       const data = await res.json()
-      if (data.error) throw new Error(data.error)
+      if (!res.ok || data.error) {
+        throw new Error(data?.error || `HTTP ${res.status}`)
+      }
       setMessages(m => [...m, { role: 'ai', text: data.text, time: new Date().toLocaleTimeString() }])
-    } catch {
-      // Compute a live fallback from local data
-      const topBySales = [...sales].sort((a, b) => (b.qty * b.sellPrice) - (a.qty * a.sellPrice))[0]
-      const totalRev = sales.reduce((s, r) => s + (r.qty * r.sellPrice), 0)
-      const totalProfit = sales.reduce((s, r) => s + ((r.qty * r.sellPrice) - (r.qty * r.buyPrice)), 0)
+    } catch (err: any) {
+      const errMsg = err?.message || 'Unknown error'
       setMessages(m => [...m, {
         role: 'ai',
-        text: `**The analytics service is temporarily unavailable.**\n\nBased on local records:\n\n🧪 **${topBySales?.chemical}** is currently the top revenue-generating product.\n💰 Total recorded revenue: **৳${totalRev.toLocaleString()}** with net profit of **৳${totalProfit.toLocaleString()}**.\n⚠️ ${sales.filter(s => ['pending','overdue'].includes(s.status)).length} order(s) have pending or overdue payment status.\n\n*Please verify your API configuration if this issue persists.*`,
+        text: `**The request could not be completed.**\n\n**Error:** ${errMsg}\n\nIf this continues, please check that the Gemini API key is set correctly in your deployment environment and that a redeploy was triggered after adding it.`,
         time: new Date().toLocaleTimeString()
       }])
     } finally {

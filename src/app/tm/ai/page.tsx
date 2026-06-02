@@ -148,14 +148,16 @@ export default function TMAIPage() {
           dataContext: workers
         })
       })
-      if (!res.ok) throw new Error('Failed to fetch from AI backend')
       const data = await res.json()
-      if (data.error) throw new Error(data.error)
+      if (!res.ok || data.error) {
+        throw new Error(data?.error || `HTTP ${res.status}`)
+      }
       setMessages(m => [...m, { role: 'ai', text: data.text, time: new Date().toLocaleTimeString() }])
     } catch (e: any) {
+      const errMsg = e?.message || 'Unknown error'
       setMessages(m => [...m, {
         role: 'ai',
-        text: `**Unable to connect to the analytics service at this time.**\n\nBased on the local workforce records:\n\n📍 **Saudi Arabia** has the highest worker concentration (2 active placements).\n📄 **Md. Hasan Ali's** passport expired in December 2025 — requires immediate attention.\n🌍 Active placements span Saudi Arabia, UAE, Qatar, Kuwait, and Malaysia.\n\n*Please verify your API configuration if this issue persists.*`,
+        text: `**The request could not be completed.**\n\n**Error:** ${errMsg}\n\nIf this continues, please check that the Gemini API key is set in your deployment environment and that a redeploy was triggered after adding it.`,
         time: new Date().toLocaleTimeString()
       }])
     } finally {
