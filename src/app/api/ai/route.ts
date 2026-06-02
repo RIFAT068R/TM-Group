@@ -167,45 +167,56 @@ Today's date: ${new Date().toISOString().split('T')[0]}
     }
 
     // ─── Build conversation history for Gemini ────────────────────────────────
+    // The 'history' sent from the frontend already INCLUDES the latest user message
+    // (it's updatedMessages = [...messages, userMsg] passed right before the fetch).
+    // We must exclude:
+    //  1. The static welcome message (time === 'now')
+    //  2. The last entry (which is the current user prompt — we add it separately)
     const contents: any[] = []
 
-    // Include history (skip only the static welcome message marked with time:'now')
     if (history && Array.isArray(history)) {
-      history.forEach((msg: any) => {
-        if (msg.time === 'now') return // Skip static welcome message only
-        contents.push({
-          role: msg.role === 'user' ? 'user' : 'model',
-          parts: [{ text: msg.text }]
-        })
+      // Build list without welcome msg and without the last entry (current prompt)
+      const historyWithoutWelcome = history.filter((msg: any) => msg.time !== 'now')
+      const historyToSend = historyWithoutWelcome.slice(0, -1) // exclude last (current prompt)
+
+      historyToSend.forEach((msg: any) => {
+        const role = msg.role === 'user' ? 'user' : 'model'
+        // Avoid consecutive same-role turns (Gemini rejects them)
+        if (contents.length > 0 && contents[contents.length - 1].role === role) return
+        contents.push({ role, parts: [{ text: msg.text }] })
       })
     }
 
-    // Append system instruction + user's latest prompt
+    // Always end with the current user prompt
     contents.push({
       role: 'user',
-      parts: [{ text: `${systemInstruction}\n\n---\nUser: ${prompt}` }]
+      parts: [{ text: prompt }]
     })
 
-    // ─── Call Gemini API ──────────────────────────────────────────────────────
+    // ─── Call Gemini API with systemInstruction field ─────────────────────────
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: systemInstruction }]
+          },
           contents,
           generationConfig: {
             temperature: 0.4,
             topK: 40,
             topP: 0.9,
-            maxOutputTokens: 1500,
+            maxOutputTokens: 2000,
           }
         })
       }
     )
 
     if (!response.ok) {
-      const errBody = await response.json()
+      const errBody = await response.json().catch(() => ({}))
+      console.error('Gemini API error:', JSON.stringify(errBody))
       return NextResponse.json({ error: errBody?.error?.message || 'Gemini API call failed' }, { status: response.status })
     }
 
@@ -214,6 +225,8 @@ Today's date: ${new Date().toISOString().split('T')[0]}
 
     return NextResponse.json({ text })
   } catch (e: any) {
+    console.error('AI route error:', e)
     return NextResponse.json({ error: e.message || 'Internal Server Error' }, { status: 500 })
   }
 }
+
