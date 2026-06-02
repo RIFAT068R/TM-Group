@@ -38,7 +38,7 @@ export default function WorkersPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState({ name: '', passport: '', dob: '', phone: '', country: '', category: 'Middle East', status: 'registered', passportExpiry: '', agency: '' })
-  const [isAdmin, setIsAdmin] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
 
   // Drawer, Editing, & Document Preview States
@@ -60,7 +60,7 @@ export default function WorkersPage() {
         if (data?.user) {
           const email = data.user.email?.toLowerCase() || '';
           const role = data.user.user_metadata?.role || '';
-          setIsAdmin(email === 'rrr78@gmail.com' || email.includes('admin') || role === 'admin');
+          setIsAdmin(email === 'rrr78@gmail.com' || email === 'rrr782677@gmail.com' || email.includes('admin') || role === 'admin');
         } else {
           setIsAdmin(false);
         }

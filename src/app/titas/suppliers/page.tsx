@@ -21,7 +21,7 @@ export default function SuppliersPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [selected, setSelected] = useState<typeof suppliers[0] | null>(null)
   const [showAdd, setShowAdd] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [form, setForm] = useState({ name: '', contact: '', phone: '', email: '', country: '', city: '', chemicals: '', paymentTerms: '', leadTimeDays: '' })
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function SuppliersPage() {
       if (data?.user) {
         const email = data.user.email?.toLowerCase() || ''
         const role = data.user.user_metadata?.role || ''
-        setIsAdmin(email === 'rrr78@gmail.com' || email.includes('admin') || role === 'admin')
+        setIsAdmin(email === 'rrr78@gmail.com' || email === 'rrr782677@gmail.com' || email.includes('admin') || role === 'admin')
       } else {
         setIsAdmin(false)
       }

@@ -15,7 +15,7 @@ export default function InventoryPage() {
   const [search, setSearch] = useState('')
   const [showRestock, setShowRestock] = useState(false)
   const [selectedItem, setSelectedItem] = useState<typeof inventoryItems[0] | null>(null)
-  const [isAdmin, setIsAdmin] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     const checkRole = async () => {
@@ -25,7 +25,7 @@ export default function InventoryPage() {
       if (data?.user) {
         const email = data.user.email?.toLowerCase() || '';
         const role = data.user.user_metadata?.role || '';
-        setIsAdmin(email === 'rrr78@gmail.com' || email.includes('admin') || role === 'admin');
+        setIsAdmin(email === 'rrr78@gmail.com' || email === 'rrr782677@gmail.com' || email.includes('admin') || role === 'admin');
       } else {
         setIsAdmin(false);
       }

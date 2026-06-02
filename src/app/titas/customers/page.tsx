@@ -16,7 +16,7 @@ export default function CustomersPage() {
   const [showAdd, setShowAdd] = useState(false)
   const [selected, setSelected] = useState<typeof customers[0] | null>(null)
   const [form, setForm] = useState({ name:'', contact:'', phone:'', email:'', city:'', address:'' })
-  const [isAdmin, setIsAdmin] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     const checkRole = async () => {
@@ -26,7 +26,7 @@ export default function CustomersPage() {
       if (data?.user) {
         const email = data.user.email?.toLowerCase() || '';
         const role = data.user.user_metadata?.role || '';
-        setIsAdmin(email === 'rrr78@gmail.com' || email.includes('admin') || role === 'admin');
+        setIsAdmin(email === 'rrr78@gmail.com' || email === 'rrr782677@gmail.com' || email.includes('admin') || role === 'admin');
       } else {
         setIsAdmin(false);
       }

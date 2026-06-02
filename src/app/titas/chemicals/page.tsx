@@ -24,7 +24,7 @@ export default function ChemicalsPage() {
   const [category, setCategory] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ name:'', sku:'', category:'Acids', unit:'kg', minStock:'' })
-  const [isAdmin, setIsAdmin] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     const checkRole = async () => {
@@ -34,7 +34,7 @@ export default function ChemicalsPage() {
       if (data?.user) {
         const email = data.user.email?.toLowerCase() || '';
         const role = data.user.user_metadata?.role || '';
-        setIsAdmin(email === 'rrr78@gmail.com' || email.includes('admin') || role === 'admin');
+        setIsAdmin(email === 'rrr78@gmail.com' || email === 'rrr782677@gmail.com' || email.includes('admin') || role === 'admin');
       } else {
         setIsAdmin(false);
       }
