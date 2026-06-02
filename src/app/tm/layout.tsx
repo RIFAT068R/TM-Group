@@ -57,9 +57,8 @@ export default function TMLayout({ children }: { children: React.ReactNode }) {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         setUser({ email: data.user.email })
-        const email = data.user.email?.toLowerCase() || '';
-        const role = data.user.user_metadata?.role || '';
-        if (email === 'rrr78@gmail.com' || email.includes('admin') || role === 'admin') {
+        const role = (data.user.user_metadata?.role || data.user.app_metadata?.role || '').toLowerCase();
+        if (role === 'admin') {
           setUserRole('TM Admin')
         } else {
           setUserRole('TM Viewer')

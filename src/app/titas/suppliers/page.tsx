@@ -30,9 +30,8 @@ export default function SuppliersPage() {
       const supabase = createClient()
       const { data } = await supabase.auth.getUser()
       if (data?.user) {
-        const email = data.user.email?.toLowerCase() || ''
-        const role = data.user.user_metadata?.role || ''
-        setIsAdmin(email === 'rrr78@gmail.com' || email === 'rrr782677@gmail.com' || email.includes('admin') || role === 'admin')
+        const role = (data.user.user_metadata?.role || data.user.app_metadata?.role || '').toLowerCase()
+        setIsAdmin(role === 'admin')
       } else {
         setIsAdmin(false)
       }
