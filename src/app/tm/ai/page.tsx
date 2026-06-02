@@ -106,7 +106,7 @@ export default function TMAIPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">AI Placement Assistant</h1>
-          <p className="page-subtitle">Powered by Gemini 1.5 Flash · Ask anything about TM Overseas</p>
+          <p className="page-subtitle">Powered by Gemini 2.5 Flash · Ask anything about TM Overseas</p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.4rem 0.875rem', background:'rgba(124,58,237,0.1)', border:'1px solid rgba(124,58,237,0.2)', borderRadius:'99px', fontSize:'0.78rem', fontWeight:600, color:'#A78BFA' }}>
           <span style={{ width:6, height:6, background:'#10B981', borderRadius:'50%' }} />

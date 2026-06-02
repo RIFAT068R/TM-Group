@@ -123,7 +123,7 @@ export default function TitasAIPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">AI Business Assistant</h1>
-          <p className="page-subtitle">Powered by Gemini 1.5 Flash · Ask anything about Titas Enterprise</p>
+          <p className="page-subtitle">Powered by Gemini 2.5 Flash · Ask anything about Titas Enterprise</p>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', padding:'0.4rem 0.875rem', background:'rgba(37,99,235,0.1)', border:'1px solid rgba(37,99,235,0.2)', borderRadius:'99px', fontSize:'0.78rem', fontWeight:600, color:'#60A5FA' }}>
           <span style={{ width:6, height:6, background:'#10B981', borderRadius:'50%', animation:'pulse 2s infinite' }} />
