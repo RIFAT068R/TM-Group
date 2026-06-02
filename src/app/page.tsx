@@ -306,28 +306,6 @@ export default function LandingPage() {
           </Link>
         </div>
       </div>
-
-      {/* Premium minimal footer */}
-      <footer style={{
-        padding: '2rem 2.5rem',
-        borderTop: '1px solid #E4E4E7',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        fontSize: '0.8rem',
-        color: '#71717A',
-        zIndex: 10,
-        position: 'relative',
-        backgroundColor: '#FFFFFF',
-        flexWrap: 'wrap',
-        gap: '1rem',
-      }}>
-        <span>© {new Date().getFullYear()} TM Business Hub. All rights reserved.</span>
-        <div style={{ display: 'flex', gap: '1.5rem' }}>
-          <span style={{ color: '#A1A1AA' }}>Security Standard Level-4</span>
-          <span style={{ color: '#A1A1AA' }}>Powered by Gemini 1.5</span>
-        </div>
-      </footer>
     </main>
   )
 }
