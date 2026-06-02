@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+const MODEL = 'gemini-2.5-flash-lite'
+
 export async function POST(req: Request) {
   try {
     const { prompt, history, module, dataContext } = await req.json()
@@ -8,207 +10,129 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Gemini API Key is not configured in environment.' }, { status: 500 })
     }
 
-    // ─── Build comprehensive system instruction per module ───────────────────
+    const today = new Date().toISOString().split('T')[0]
     let systemInstruction = ''
 
+    // ─── TM Overseas Module ────────────────────────────────────────────────────
     if (module === 'tm') {
-      // Pre-compute data summaries for richer AI context
       const workers: any[] = Array.isArray(dataContext) ? dataContext : []
-      const today = new Date()
 
+      // Compact summaries — avoids sending full pretty-printed JSON
       const byCountry: Record<string, number> = {}
       const byStatus: Record<string, number> = {}
-      const expiringPassports: any[] = []
-      const expiringVisas: any[] = []
+      const alertWorkers: string[] = []
 
       workers.forEach(w => {
         byCountry[w.country] = (byCountry[w.country] || 0) + 1
         byStatus[w.status] = (byStatus[w.status] || 0) + 1
-
-        const passExpiry = w.passportExpiry ? new Date(w.passportExpiry) : null
-        if (passExpiry) {
-          const daysLeft = Math.ceil((passExpiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-          if (daysLeft <= 180) {
-            expiringPassports.push({ name: w.name, passport: w.passport, country: w.country, expiresOn: w.passportExpiry, daysLeft })
-          }
-        }
-
-        const visaExpiry = w.visaExpiry ? new Date(w.visaExpiry) : null
-        if (visaExpiry) {
-          const daysLeft = Math.ceil((visaExpiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-          if (daysLeft <= 90) {
-            expiringVisas.push({ name: w.name, country: w.country, expiresOn: w.visaExpiry, daysLeft })
-          }
+        const exp = w.passportExpiry ? new Date(w.passportExpiry) : null
+        if (exp) {
+          const days = Math.ceil((exp.getTime() - Date.now()) / 86400000)
+          if (days <= 180) alertWorkers.push(`${w.name} (${w.country}, expires ${w.passportExpiry}, ${days}d left)`)
         }
       })
 
-      systemInstruction = `
-You are a senior operations analyst and business intelligence specialist working with TM Overseas — a manpower recruitment and overseas placement company.
+      // Compact worker list — minimal fields only
+      const compactWorkers = workers.map(w => ({
+        id: w.id, name: w.name, passport: w.passport,
+        country: w.country, status: w.status,
+        passportExpiry: w.passportExpiry, phone: w.phone, dob: w.dob,
+        category: w.category, agency: w.agency
+      }))
 
-IDENTITY RULES:
-- Never refer to yourself as an AI, AI Assistant, Virtual Assistant, Chatbot, Language Model, or Automated System.
-- Never say phrases like "As an AI assistant...", "I am an AI model...", "My capabilities include...", or "I cannot because I am an AI..."
-- Respond as an experienced operations manager and recruitment analyst reviewing live business data.
-- Responses must feel like they come from a skilled senior team member — knowledgeable, professional, and consultative.
+      systemInstruction = `You are a senior operations analyst for TM Overseas, a Bangladeshi manpower placement agency.
+Respond as an experienced business manager — professional, direct, analytical. Never say you are an AI.
+Answer first, then support with data, then add one business insight.
+Use markdown: **bold**, bullet points, ### headers. Be concise.
+Today: ${today}
 
-COMMUNICATION STYLE:
-- Be professional, direct, analytical, and concise.
-- Use structured markdown formatting: headers, bold text, bullet points.
-- After the first message, do NOT start with greetings.
-- Always provide the answer first, then supporting data, then insight/recommendation.
-- When information is missing, explain what's needed, offer the closest useful analysis, and suggest a next step.
-- Never say "I cannot" or "I don't have access". Instead say "The current records do not contain..." or "Based on available data..."
+WORKERS (${workers.length} total): ${JSON.stringify(compactWorkers)}
+BY COUNTRY: ${JSON.stringify(byCountry)}
+BY STATUS: ${JSON.stringify(byStatus)}
+PASSPORT ALERTS (expiring ≤180 days): ${alertWorkers.length ? alertWorkers.join('; ') : 'None'}
+ACTIVE (working+visa_approved+departed): ${workers.filter(w => ['working','visa_approved','departed'].includes(w.status)).length}`
 
-BUSINESS CONTEXT:
-TM Overseas is a Bangladeshi manpower agency placing workers in Saudi Arabia, UAE, Qatar, Kuwait, Malaysia, and other countries.
-Key operations: worker recruitment, visa processing, document management, agency partnerships, and overseas placement tracking.
-
-FULL WORKER DATABASE (${workers.length} records):
-${JSON.stringify(workers, null, 2)}
-
-COMPUTED ANALYTICS:
-Country Distribution: ${JSON.stringify(byCountry)}
-Status Breakdown: ${JSON.stringify(byStatus)}
-Passports Expiring Within 6 Months: ${JSON.stringify(expiringPassports)}
-Visas Expiring Within 90 Days: ${JSON.stringify(expiringVisas)}
-Total Active Workers (working + visa_approved + departed): ${workers.filter(w => ['working','visa_approved','departed'].includes(w.status)).length}
-
-RESPONSE FRAMEWORK:
-1. For data questions: Direct answer → Supporting figures → Business insight → Optional recommendation
-2. For document/expiry questions: List specific workers with exact dates and days remaining
-3. For country analysis: Break down by count, percentage, and trend
-4. For missing data: State what's missing, provide closest available analysis, suggest next step
-5. Add one sentence that answers "What does this mean for the business?"
-
-Today's date: ${today.toISOString().split('T')[0]}
-`
+    // ─── Titas Enterprise Module ──────────────────────────────────────────────
     } else {
-      // Titas Enterprise module
       const sales: any[] = Array.isArray(dataContext) ? dataContext : []
 
-      const totalRevenue = sales.reduce((s, r) => s + (r.qty * r.sellPrice), 0)
-      const totalCost = sales.reduce((s, r) => s + (r.qty * r.buyPrice), 0)
-      const totalProfit = totalRevenue - totalCost
-      const margin = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : '0'
-      const unpaid = sales.filter(s => ['pending','overdue'].includes(s.status)).reduce((sum, s) => sum + (s.qty * s.sellPrice), 0)
+      const totalRev = sales.reduce((s, r) => s + r.qty * r.sellPrice, 0)
+      const totalCost = sales.reduce((s, r) => s + r.qty * r.buyPrice, 0)
+      const totalProfit = totalRev - totalCost
+      const margin = totalRev > 0 ? ((totalProfit / totalRev) * 100).toFixed(1) : '0'
+      const unpaid = sales.filter(s => ['pending','overdue'].includes(s.status)).reduce((t, s) => t + s.qty * s.sellPrice, 0)
 
-      const customerMap: Record<string, { revenue: number; profit: number; orders: number }> = {}
-      const chemMap: Record<string, { qty: number; revenue: number; profit: number }> = {}
-
+      // Customer summary
+      const custMap: Record<string, { rev: number; profit: number; orders: number }> = {}
+      const chemMap: Record<string, { qty: number; rev: number; profit: number }> = {}
       sales.forEach(s => {
         const rev = s.qty * s.sellPrice
-        const cost = s.qty * s.buyPrice
-        if (!customerMap[s.customer]) customerMap[s.customer] = { revenue: 0, profit: 0, orders: 0 }
-        customerMap[s.customer].revenue += rev
-        customerMap[s.customer].profit += (rev - cost)
-        customerMap[s.customer].orders += 1
-
-        if (!chemMap[s.chemical]) chemMap[s.chemical] = { qty: 0, revenue: 0, profit: 0 }
+        const profit = rev - s.qty * s.buyPrice
+        if (!custMap[s.customer]) custMap[s.customer] = { rev: 0, profit: 0, orders: 0 }
+        custMap[s.customer].rev += rev
+        custMap[s.customer].profit += profit
+        custMap[s.customer].orders++
+        if (!chemMap[s.chemical]) chemMap[s.chemical] = { qty: 0, rev: 0, profit: 0 }
         chemMap[s.chemical].qty += s.qty
-        chemMap[s.chemical].revenue += rev
-        chemMap[s.chemical].profit += (rev - cost)
+        chemMap[s.chemical].rev += rev
+        chemMap[s.chemical].profit += profit
       })
 
-      const topCustomers = Object.entries(customerMap)
-        .sort(([,a],[,b]) => b.revenue - a.revenue)
-        .map(([name, d]) => ({ name, ...d, margin: d.revenue > 0 ? ((d.profit/d.revenue)*100).toFixed(1)+'%' : '0%' }))
+      const topCust = Object.entries(custMap)
+        .sort(([,a],[,b]) => b.rev - a.rev)
+        .map(([name, d]) => `${name}: rev=৳${d.rev.toLocaleString()} profit=৳${d.profit.toLocaleString()} orders=${d.orders}`)
 
-      const topChemicals = Object.entries(chemMap)
-        .sort(([,a],[,b]) => b.revenue - a.revenue)
-        .map(([name, d]) => ({ name, ...d, margin: d.revenue > 0 ? ((d.profit/d.revenue)*100).toFixed(1)+'%' : '0%' }))
+      const topChem = Object.entries(chemMap)
+        .sort(([,a],[,b]) => b.rev - a.rev)
+        .map(([name, d]) => `${name}: qty=${d.qty} rev=৳${d.rev.toLocaleString()} profit=৳${d.profit.toLocaleString()}`)
 
-      systemInstruction = `
-You are a senior business analyst and commercial intelligence specialist working with Titas Enterprise — a chemical import and distribution company in Bangladesh.
+      const compactSales = sales.map(s => ({
+        id: s.id, customer: s.customer, chemical: s.chemical,
+        qty: s.qty, unit: s.unit, buyPrice: s.buyPrice, sellPrice: s.sellPrice,
+        revenue: s.qty * s.sellPrice, profit: (s.qty * s.sellPrice) - (s.qty * s.buyPrice),
+        date: s.date, status: s.status
+      }))
 
-IDENTITY RULES:
-- Never refer to yourself as an AI, AI Assistant, Virtual Assistant, Chatbot, Language Model, or Automated System.
-- Never say phrases like "As an AI assistant...", "My capabilities include...", "I cannot because I am an AI...", or "Hello! I'm your..."
-- Respond as an experienced Business Intelligence Manager, Sales Director, or Commercial Analyst reviewing live company data.
-- After the first message, do NOT start with greetings like "Hello", "Hi", or "Based on your question".
+      systemInstruction = `You are a senior business analyst for Titas Enterprise, a chemical import & distribution company in Bangladesh.
+Respond as an experienced BI Manager or Sales Director — professional, direct, analytical. Never say you are an AI. Never start with "Hello".
+Answer first, support with figures, add one business insight. Use markdown: **bold**, bullets, ### headers. Be concise.
+Today: ${today}
 
-COMMUNICATION STYLE:
-- Be professional, direct, analytical, and consultative.
-- Always provide the answer FIRST, then supporting figures, then business insight.
-- Use structured markdown formatting: headers (###), bold key figures, bullet points.
-- Add one business insight sentence: "What does this mean for the company?"
-- For missing data: explain what's needed, then provide the closest available analysis.
-- Never say "I cannot" or "No data available". Say "The current dataset does not contain enough information..." then offer an alternative.
-
-BUSINESS CONTEXT:
-Titas Enterprise imports and distributes industrial and pharmaceutical-grade chemicals to major Bangladeshi companies including pharmaceutical companies, FMCG groups, and industrial manufacturers.
-Key operations: chemical sourcing, customer sales management, inventory monitoring, revenue and profit tracking.
-
-FULL SALES DATABASE (${sales.length} records):
-${JSON.stringify(sales, null, 2)}
-
-COMPUTED ANALYTICS SUMMARY:
-- Total Revenue: ৳${totalRevenue.toLocaleString()}
-- Total Cost: ৳${totalCost.toLocaleString()}
-- Net Profit: ৳${totalProfit.toLocaleString()}
-- Overall Profit Margin: ${margin}%
-- Total Unpaid/Overdue Receivables: ৳${unpaid.toLocaleString()}
-- Total Orders Tracked: ${sales.length}
-
-TOP CUSTOMERS BY REVENUE:
-${JSON.stringify(topCustomers, null, 2)}
-
-TOP CHEMICALS BY REVENUE:
-${JSON.stringify(topChemicals, null, 2)}
-
-RESPONSE FRAMEWORK:
-1. For sales/revenue questions: Direct answer → Key figures → Business insight → Recommendation
-2. For inventory questions: State current status → Business impact → Replenishment recommendation
-3. For customer analysis: Revenue → Profit → Margin → Strategic importance
-4. For product performance: Rank → Revenue → Margin → Trend insight
-5. For missing data: State what's needed → Provide closest available → Suggest next step
-
-Today's date: ${new Date().toISOString().split('T')[0]}
-`
+SALES RECORDS (${sales.length} orders): ${JSON.stringify(compactSales)}
+SUMMARY: revenue=৳${totalRev.toLocaleString()} cost=৳${totalCost.toLocaleString()} profit=৳${totalProfit.toLocaleString()} margin=${margin}% unpaid=৳${unpaid.toLocaleString()}
+TOP CUSTOMERS: ${topCust.join(' | ')}
+TOP CHEMICALS: ${topChem.join(' | ')}`
     }
 
-    // ─── Build conversation history for Gemini ────────────────────────────────
-    // The 'history' sent from the frontend already INCLUDES the latest user message
-    // (it's updatedMessages = [...messages, userMsg] passed right before the fetch).
-    // We must exclude:
-    //  1. The static welcome message (time === 'now')
-    //  2. The last entry (which is the current user prompt — we add it separately)
+    // ─── Build Gemini conversation (history without current prompt) ───────────
     const contents: any[] = []
 
     if (history && Array.isArray(history)) {
-      // Build list without welcome msg and without the last entry (current prompt)
-      const historyWithoutWelcome = history.filter((msg: any) => msg.time !== 'now')
-      const historyToSend = historyWithoutWelcome.slice(0, -1) // exclude last (current prompt)
-
-      historyToSend.forEach((msg: any) => {
-        const role = msg.role === 'user' ? 'user' : 'model'
-        // Avoid consecutive same-role turns (Gemini rejects them)
+      const filtered = history.filter((m: any) => m.time !== 'now').slice(0, -1)
+      filtered.forEach((m: any) => {
+        const role = m.role === 'user' ? 'user' : 'model'
         if (contents.length > 0 && contents[contents.length - 1].role === role) return
-        contents.push({ role, parts: [{ text: msg.text }] })
+        contents.push({ role, parts: [{ text: m.text }] })
       })
     }
 
-    // Always end with the current user prompt
-    contents.push({
-      role: 'user',
-      parts: [{ text: prompt }]
-    })
+    // Add current user prompt
+    contents.push({ role: 'user', parts: [{ text: prompt }] })
 
-    // ─── Call Gemini API with systemInstruction field ─────────────────────────
+    // ─── Call Gemini ─────────────────────────────────────────────────────────
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: systemInstruction }]
-          },
+          systemInstruction: { parts: [{ text: systemInstruction }] },
           contents,
           generationConfig: {
-            temperature: 0.4,
-            topK: 40,
-            topP: 0.9,
-            maxOutputTokens: 2000,
+            temperature: 0.35,
+            topK: 32,
+            topP: 0.85,
+            maxOutputTokens: 1200,
           }
         })
       }
@@ -216,17 +140,23 @@ Today's date: ${new Date().toISOString().split('T')[0]}
 
     if (!response.ok) {
       const errBody = await response.json().catch(() => ({}))
-      console.error('Gemini API error:', JSON.stringify(errBody))
-      return NextResponse.json({ error: errBody?.error?.message || 'Gemini API call failed' }, { status: response.status })
+      console.error('Gemini error:', response.status, JSON.stringify(errBody))
+      const msg = errBody?.error?.message || 'Gemini API call failed'
+      // Surface quota errors clearly
+      if (response.status === 429) {
+        return NextResponse.json({
+          error: `Rate limit reached (HTTP 429). The free tier allows limited requests per day. Please wait a few minutes and try again. Details: ${msg.slice(0, 200)}`
+        }, { status: 429 })
+      }
+      return NextResponse.json({ error: msg }, { status: response.status })
     }
 
     const resData = await response.json()
     const text = resData?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated.'
-
     return NextResponse.json({ text })
+
   } catch (e: any) {
     console.error('AI route error:', e)
     return NextResponse.json({ error: e.message || 'Internal Server Error' }, { status: 500 })
   }
 }
-
