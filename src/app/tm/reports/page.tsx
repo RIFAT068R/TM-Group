@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 const monthlyData = [
   { month:'Jan', revenue:120000, expenses:75000, profit:45000, placements:8  },
@@ -43,7 +43,7 @@ export default function TMReportsPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Business Reports</h1>
-          <p className="page-subtitle">Manpower placement & revenue reporting</p>
+          <p className="page-subtitle">Manpower placement &amp; revenue reporting</p>
         </div>
         <div className="page-actions">
           <button className="btn btn-tm" onClick={()=>alert('PDF export — coming after jsPDF integration')}>
@@ -80,34 +80,86 @@ export default function TMReportsPage() {
 
       {tab==='financial' && (
         <>
-          <div className="chart-card" style={{ marginBottom:'1rem' }}>
-            <div className="chart-title">Monthly Revenue & Profit</div>
+          {/* Bar Chart — Revenue vs Expenses vs Profit */}
+          <div className="chart-card" style={{ marginBottom:'1.25rem' }}>
+            <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'0.25rem', gap:'0.75rem' }}>
+              <div>
+                <div className="chart-title">Monthly Revenue &amp; Profit</div>
+                <div className="chart-subtitle">6-month financial overview across all placement operations</div>
+              </div>
+              <span className="chart-badge">H1 2026</span>
+            </div>
             {mounted && (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="month" tick={{ fill:'#64748B', fontSize:12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill:'#64748B', fontSize:11 }} axisLine={false} tickLine={false} tickFormatter={v=>`৳${(v/1000).toFixed(0)}k`} />
-                  <Tooltip contentStyle={{ background:'#100E28', border:'1px solid rgba(124,58,237,0.2)', borderRadius:'8px', fontSize:'0.78rem' }} formatter={(v:any)=>[`৳${v?.toLocaleString()}`,'']} />
-                  <Legend wrapperStyle={{ fontSize:'0.78rem', color:'#94A3B8' }} />
-                  <Bar dataKey="revenue"  name="Revenue"  fill="#7C3AED" radius={[4,4,0,0]} />
-                  <Bar dataKey="expenses" name="Expenses" fill="#F59E0B" radius={[4,4,0,0]} />
-                  <Bar dataKey="profit"   name="Profit"   fill="#10B981" radius={[4,4,0,0]} />
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={monthlyData} barCategoryGap="28%" barGap={4}>
+                  <defs>
+                    <linearGradient id="tmRevGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#7C3AED" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#9D55FF" stopOpacity={0.7} />
+                    </linearGradient>
+                    <linearGradient id="tmExpGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#F59E0B" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#FBBF24" stopOpacity={0.7} />
+                    </linearGradient>
+                    <linearGradient id="tmProfGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10B981" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#34D399" stopOpacity={0.7} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="4 4" stroke="rgba(255,255,255,0.06)" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fill:'#64748B', fontSize:12, fontWeight:500 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill:'#64748B', fontSize:11 }} axisLine={false} tickLine={false} tickFormatter={v=>`৳${(v/1000).toFixed(0)}k`} width={52} />
+                  <Tooltip
+                    contentStyle={{ background:'#100E28', border:'1px solid rgba(124,58,237,0.25)', borderRadius:'12px', fontSize:'0.78rem', boxShadow:'0 8px 32px rgba(0,0,0,0.3)', padding:'0.625rem 0.875rem' }}
+                    formatter={(v:any, name:any)=>[`৳${v?.toLocaleString()}`, name]}
+                    cursor={{ fill:'rgba(124,58,237,0.06)', radius:4 }}
+                  />
+                  <Legend wrapperStyle={{ fontSize:'0.78rem', color:'#94A3B8', paddingTop:'0.75rem' }} iconType="circle" iconSize={8} />
+                  <Bar dataKey="revenue"  name="Revenue"  fill="url(#tmRevGrad)"  radius={[6,6,0,0]} />
+                  <Bar dataKey="expenses" name="Expenses" fill="url(#tmExpGrad)"  radius={[6,6,0,0]} />
+                  <Bar dataKey="profit"   name="Profit"   fill="url(#tmProfGrad)" radius={[6,6,0,0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
+
+          {/* Area Chart — Placements Trend */}
           <div className="chart-card">
-            <div className="chart-title">Placements per Month</div>
+            <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'0.25rem', gap:'0.75rem' }}>
+              <div>
+                <div className="chart-title">Placements per Month</div>
+                <div className="chart-subtitle">Monthly worker placement count across all international markets</div>
+              </div>
+              <span className="chart-badge" style={{ background:'rgba(167,139,250,0.12)', color:'#A78BFA', borderColor:'rgba(167,139,250,0.25)' }}>↑ Trend</span>
+            </div>
             {mounted && (
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={monthlyData} margin={{ top:10, right:16, left:0, bottom:0 }}>
+                  <defs>
+                    <linearGradient id="tmPlaceGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"   stopColor="#A78BFA" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="#A78BFA" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="4 4" stroke="rgba(255,255,255,0.06)" vertical={false} />
                   <XAxis dataKey="month" tick={{ fill:'#64748B', fontSize:12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill:'#64748B', fontSize:11 }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ background:'#100E28', border:'1px solid rgba(124,58,237,0.2)', borderRadius:'8px', fontSize:'0.78rem' }} />
-                  <Line type="monotone" dataKey="placements" name="Placements" stroke="#A78BFA" strokeWidth={3} dot={{ fill:'#7C3AED', r:4 }} />
-                </LineChart>
+                  <YAxis tick={{ fill:'#64748B', fontSize:11 }} axisLine={false} tickLine={false} width={36} />
+                  <Tooltip
+                    contentStyle={{ background:'#100E28', border:'1px solid rgba(124,58,237,0.25)', borderRadius:'12px', fontSize:'0.78rem', boxShadow:'0 8px 32px rgba(0,0,0,0.3)', padding:'0.625rem 0.875rem' }}
+                    formatter={(v:any)=>[v, 'Placements']}
+                    cursor={{ stroke:'#A78BFA', strokeWidth:1.5, strokeDasharray:'4 4' }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="placements"
+                    name="Placements"
+                    stroke="#A78BFA"
+                    strokeWidth={3}
+                    fill="url(#tmPlaceGrad)"
+                    dot={{ fill:'#fff', stroke:'#7C3AED', strokeWidth:2.5, r:5 }}
+                    activeDot={{ r:7, fill:'#7C3AED', stroke:'#fff', strokeWidth:2 }}
+                  />
+                </AreaChart>
               </ResponsiveContainer>
             )}
           </div>

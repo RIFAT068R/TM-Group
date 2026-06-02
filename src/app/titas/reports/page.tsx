@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { BarChart, Bar, AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 // Consolidated rich database representing realistic chemical transactions in the year 2026
 const salesData = [
@@ -349,35 +349,113 @@ export default function TitasReportsPage() {
       {/* Tab Contents */}
       {tab === 'financial' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
+          {/* Bar Chart — Revenue vs Cost vs Profit */}
           <div className="chart-card">
-            <div className="chart-title">Dynamic Sales Revenue vs Cost vs Net Profit</div>
-            <div className="chart-subtitle">Calculated instantly from filtered transaction registry</div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.25rem', gap: '0.75rem' }}>
+              <div>
+                <div className="chart-title">Dynamic Sales Revenue vs Cost vs Net Profit</div>
+                <div className="chart-subtitle">Calculated instantly from filtered transaction registry</div>
+              </div>
+              <span className="chart-badge green">Live · Filtered</span>
+            </div>
             {mounted && (
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={monthlyData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `৳${(v/1000).toFixed(0)}k`} />
-                  <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '0.78rem' }} formatter={(v: any) => [`৳${v?.toLocaleString()}`, '']} />
-                  <Legend wrapperStyle={{ fontSize: '0.78rem', color: 'var(--text-muted)' }} />
-                  <Bar dataKey="revenue" name="Revenue" fill="var(--brand-accent)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="cost"    name="Cost"    fill="#F59E0B" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="profit"  name="Net Profit" fill="#10B981" radius={[4, 4, 0, 0]} />
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={monthlyData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }} barCategoryGap="28%" barGap={4}>
+                  <defs>
+                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#7C3AED" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#9D55FF" stopOpacity={0.75} />
+                    </linearGradient>
+                    <linearGradient id="costGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#F59E0B" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#FBBF24" stopOpacity={0.75} />
+                    </linearGradient>
+                    <linearGradient id="profGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10B981" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#34D399" stopOpacity={0.75} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="4 4" stroke="var(--border)" vertical={false} />
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fill: 'var(--text-muted)', fontSize: 12, fontWeight: 500 }}
+                    axisLine={false} tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: 'var(--text-muted)', fontSize: 11 }}
+                    axisLine={false} tickLine={false}
+                    tickFormatter={v => `৳${(v/1000).toFixed(0)}k`}
+                    width={52}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '12px',
+                      fontSize: '0.78rem',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                      padding: '0.625rem 0.875rem'
+                    }}
+                    formatter={(v: any, name: any) => [`৳${v?.toLocaleString()}`, name]}
+                    cursor={{ fill: 'rgba(88,2,130,0.04)', radius: 4 }}
+                  />
+                  <Legend
+                    wrapperStyle={{ fontSize: '0.78rem', color: 'var(--text-muted)', paddingTop: '0.75rem' }}
+                    iconType="circle"
+                    iconSize={8}
+                  />
+                  <Bar dataKey="revenue" name="Revenue"    fill="url(#revGrad)"  radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="cost"    name="Cost"       fill="url(#costGrad)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="profit"  name="Net Profit" fill="url(#profGrad)" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
           </div>
+
+          {/* Area Chart — Profit Trend */}
           <div className="chart-card">
-            <div className="chart-title">Net Operating Profit Trend</div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.25rem', gap: '0.75rem' }}>
+              <div>
+                <div className="chart-title">Net Operating Profit Trend</div>
+                <div className="chart-subtitle">Monthly profit trajectory across selected date range</div>
+              </div>
+              <span className="chart-badge">↑ Trend</span>
+            </div>
             {mounted && (
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={monthlyData} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="areaProfit" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"   stopColor="#10B981" stopOpacity={0.22} />
+                      <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="4 4" stroke="var(--border)" vertical={false} />
                   <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `৳${(v/1000).toFixed(0)}k`} />
-                  <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '0.78rem' }} />
-                  <Line type="monotone" dataKey="profit" name="Net Profit" stroke="#10B981" strokeWidth={3} dot={{ fill: '#10B981', r: 4 }} />
-                </LineChart>
+                  <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `৳${(v/1000).toFixed(0)}k`} width={52} />
+                  <Tooltip
+                    contentStyle={{
+                      background: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '12px',
+                      fontSize: '0.78rem',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                      padding: '0.625rem 0.875rem'
+                    }}
+                    formatter={(v: any) => [`৳${v?.toLocaleString()}`, 'Net Profit']}
+                    cursor={{ stroke: '#10B981', strokeWidth: 1.5, strokeDasharray: '4 4' }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="profit"
+                    name="Net Profit"
+                    stroke="#10B981"
+                    strokeWidth={3}
+                    fill="url(#areaProfit)"
+                    dot={{ fill: '#fff', stroke: '#10B981', strokeWidth: 2.5, r: 5 }}
+                    activeDot={{ r: 7, fill: '#10B981', stroke: '#fff', strokeWidth: 2 }}
+                  />
+                </AreaChart>
               </ResponsiveContainer>
             )}
           </div>

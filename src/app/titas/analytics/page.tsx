@@ -103,18 +103,39 @@ export default function TitasAnalyticsPage() {
         
         {/* Predictive Trend Card */}
         <div className="chart-card">
-          <div className="chart-title">3-Month Sales Trend Forecast</div>
-          <div className="chart-subtitle">Dashed line represents predictive sales volume forecasts</div>
+          <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'0.25rem', gap:'0.75rem' }}>
+            <div>
+              <div className="chart-title">3-Month Sales Trend Forecast</div>
+              <div className="chart-subtitle">Dashed line represents predictive sales volume forecasts</div>
+            </div>
+            <span className="chart-badge green">AI Forecast</span>
+          </div>
           {mounted && (
             <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={trendData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <LineChart data={trendData} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="actualGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--brand-accent)" stopOpacity={0.2} />
+                    <stop offset="100%" stopColor="var(--brand-accent)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="4 4" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `৳${(v/1000).toFixed(0)}k`} />
-                <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '0.78rem' }} formatter={(v: any) => [`৳${v?.toLocaleString()}`, '']} />
-                <Legend wrapperStyle={{ fontSize: '0.78rem' }} />
-                <Line type="monotone" dataKey="actual" name="Actual Revenue" stroke="var(--brand-accent)" strokeWidth={3.5} dot={{ fill: 'var(--brand-accent)', r: 4 }} />
-                <Line type="monotone" dataKey="forecast" name="Projected Forecast" stroke="#10B981" strokeWidth={3} strokeDasharray="6 4" dot={{ fill: '#10B981', r: 4 }} />
+                <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `৳${(v/1000).toFixed(0)}k`} width={52} />
+                <Tooltip
+                  contentStyle={{
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '12px',
+                    fontSize: '0.78rem',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                    padding: '0.625rem 0.875rem'
+                  }}
+                  formatter={(v: any) => [`৳${v?.toLocaleString()}`, '']}
+                />
+                <Legend wrapperStyle={{ fontSize: '0.78rem', paddingTop: '0.75rem' }} iconType="circle" iconSize={8} />
+                <Line type="monotone" dataKey="actual" name="Actual Revenue" stroke="var(--brand-accent)" strokeWidth={3} dot={{ fill: '#fff', stroke: 'var(--brand-accent)', strokeWidth: 2.5, r: 5 }} activeDot={{ r: 7, fill: 'var(--brand-accent)', stroke: '#fff', strokeWidth: 2 }} connectNulls={false} />
+                <Line type="monotone" dataKey="forecast" name="Projected Forecast" stroke="#10B981" strokeWidth={2.5} strokeDasharray="6 4" dot={{ fill: '#fff', stroke: '#10B981', strokeWidth: 2, r: 4 }} activeDot={{ r: 6, fill: '#10B981', stroke: '#fff', strokeWidth: 2 }} connectNulls={false} />
               </LineChart>
             </ResponsiveContainer>
           )}
@@ -122,8 +143,13 @@ export default function TitasAnalyticsPage() {
 
         {/* Product Revenue Share Doughnut Card */}
         <div className="chart-card">
-          <div className="chart-title">Chemical Revenue Share</div>
-          <div className="chart-subtitle">Percentage revenue contribution by key chemicals</div>
+          <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'0.25rem', gap:'0.75rem' }}>
+            <div>
+              <div className="chart-title">Chemical Revenue Share</div>
+              <div className="chart-subtitle">Percentage revenue contribution by key chemicals</div>
+            </div>
+            <span className="chart-badge amber">2026</span>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', height: '260px' }}>
             <div style={{ width: '60%', height: '100%' }}>
               {mounted && (
@@ -133,26 +159,37 @@ export default function TitasAnalyticsPage() {
                       data={chemicalShareData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={55}
-                      outerRadius={80}
-                      paddingAngle={3}
+                      innerRadius={60}
+                      outerRadius={92}
+                      paddingAngle={4}
                       dataKey="value"
+                      strokeWidth={0}
                     >
                       {chemicalShareData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '0.78rem' }} formatter={(v: any) => [`৳${v?.toLocaleString()}`, 'Revenue']} />
+                    <Tooltip
+                      contentStyle={{
+                        background: 'var(--surface)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '12px',
+                        fontSize: '0.78rem',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                        padding: '0.625rem 0.875rem'
+                      }}
+                      formatter={(v: any) => [`৳${v?.toLocaleString()}`, 'Revenue']}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               )}
             </div>
             
             {/* Custom Doughnut Legend */}
-            <div style={{ width: '40%', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.78rem' }}>
+            <div style={{ width: '40%', display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.78rem' }}>
               {chemicalShareData.map(c => (
-                <div key={c.name} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', background: c.color }} />
+                <div key={c.name} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: c.color, flexShrink: 0 }} />
                   <div style={{ minWidth: '0', flex: 1 }}>
                     <div style={{ fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</div>
                     <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>৳{(c.value / 1000).toFixed(0)}k</div>
@@ -169,14 +206,19 @@ export default function TitasAnalyticsPage() {
         
         {/* Business Performance Radar */}
         <div className="chart-card">
-          <div className="chart-title">Business Performance Radar</div>
-          <div className="chart-subtitle">Overall score across six operational metrics</div>
+          <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'0.25rem', gap:'0.75rem' }}>
+            <div>
+              <div className="chart-title">Business Performance Radar</div>
+              <div className="chart-subtitle">Overall score across six operational metrics</div>
+            </div>
+            <span className="chart-badge">Score · 76</span>
+          </div>
           {mounted && (
             <ResponsiveContainer width="100%" height={260}>
               <RadarChart data={radarData}>
                 <PolarGrid stroke="var(--border)" />
                 <PolarAngleAxis dataKey="metric" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
-                <Radar name="Score" dataKey="score" stroke="var(--brand-accent)" fill="var(--brand-accent)" fillOpacity={0.15} strokeWidth={2} />
+                <Radar name="Score" dataKey="score" stroke="var(--brand-accent)" fill="var(--brand-accent)" fillOpacity={0.18} strokeWidth={2.5} />
               </RadarChart>
             </ResponsiveContainer>
           )}
