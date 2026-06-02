@@ -258,7 +258,6 @@ export default function TMLayout({ children }: { children: React.ReactNode }) {
               className="btn btn-ghost btn-icon" 
               onClick={toggleTheme} 
               aria-label="Toggle Color Theme" 
-              data-tooltip="Toggle Theme"
               style={{ padding: '0.45rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               {theme === 'light' ? (
@@ -272,7 +271,7 @@ export default function TMLayout({ children }: { children: React.ReactNode }) {
               )}
             </button>
 
-            <button className="btn btn-ghost btn-icon" aria-label="Notifications" data-tooltip="Notifications"><BellIcon /></button>
+            <button className="btn btn-ghost btn-icon" aria-label="Notifications"><BellIcon /></button>
             <div className={styles.moduleBadge}>
               <span className={styles.moduleDot} />
               TM Overseas

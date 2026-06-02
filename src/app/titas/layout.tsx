@@ -281,7 +281,6 @@ export default function TitasLayout({ children }: { children: React.ReactNode })
               className="btn btn-ghost btn-icon" 
               onClick={toggleTheme} 
               aria-label="Toggle Color Theme" 
-              data-tooltip="Toggle Theme"
               style={{ padding: '0.45rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               {theme === 'light' ? (
@@ -296,7 +295,7 @@ export default function TitasLayout({ children }: { children: React.ReactNode })
             </button>
 
             {/* Notifications bell */}
-            <button className="btn btn-ghost btn-icon" aria-label="Notifications" data-tooltip="Notifications">
+            <button className="btn btn-ghost btn-icon" aria-label="Notifications">
               <BellIcon />
             </button>
             {/* Module badge */}
