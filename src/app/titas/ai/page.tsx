@@ -199,7 +199,7 @@ export default function TitasAIPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">AI Business Assistant</h1>
-          <p className="page-subtitle">Powered by Gemini 2.5 Flash · Titas Enterprise Intelligence</p>
+          <p className="page-subtitle">Powered by Gemini 2.5 Flash-Lite · Titas Enterprise Intelligence</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button

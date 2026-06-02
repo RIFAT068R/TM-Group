@@ -183,7 +183,7 @@ export default function TMAIPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">AI Placement Assistant</h1>
-          <p className="page-subtitle">Powered by Gemini 2.5 Flash · Ask anything about TM Overseas</p>
+          <p className="page-subtitle">Powered by Gemini 2.5 Flash-Lite · Ask anything about TM Overseas</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button
