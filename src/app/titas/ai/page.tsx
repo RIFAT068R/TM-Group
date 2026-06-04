@@ -253,24 +253,71 @@ export default function TitasAIPage() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input */}
-          <div style={{ padding: '1rem', borderTop: '1px solid var(--border)', background: 'var(--surface)' }}>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
+          {/* Input — Premium Chat Bar */}
+          <div style={{ padding: '1rem 1.25rem', borderTop: '1px solid var(--border)', background: 'var(--surface)' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0',
+              background: 'var(--surface2)', border: '1.5px solid var(--border)',
+              borderRadius: '16px', overflow: 'hidden',
+              transition: 'border-color 0.2s, box-shadow 0.2s',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            }}
+              onFocusCapture={e => {
+                (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--brand-accent)'
+                ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 0 0 3px var(--brand-accent-soft)'
+              }}
+              onBlurCapture={e => {
+                ;(e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'
+                ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'
+              }}
+            >
+              {/* Sparkle Icon */}
+              <div style={{ paddingLeft: '1rem', color: 'var(--brand-accent)', opacity: 0.7, flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+                </svg>
+              </div>
+              {/* Text Input */}
               <input
-                className="form-input"
                 placeholder="Ask about chemicals, sales, customers, profits..."
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input) } }}
+                style={{
+                  flex: 1, border: 'none', outline: 'none', background: 'transparent',
+                  padding: '0.95rem 0.9rem', fontSize: '0.875rem', fontFamily: 'inherit',
+                  color: 'var(--text-primary)',
+                }}
               />
-              <button className="btn btn-primary" onClick={() => sendMessage(input)} disabled={!input.trim() || loading} aria-label="Send message">
-                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+              {/* Send Button */}
+              <button
+                onClick={() => sendMessage(input)}
+                disabled={!input.trim() || loading}
+                aria-label="Send message"
+                style={{
+                  margin: '0.45rem', padding: '0.6rem 1rem', borderRadius: '11px',
+                  border: 'none', cursor: input.trim() && !loading ? 'pointer' : 'default',
+                  background: input.trim() && !loading
+                    ? 'linear-gradient(135deg, var(--brand-accent) 0%, #9333EA 100%)'
+                    : 'var(--border)',
+                  color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.2s ease', flexShrink: 0,
+                  opacity: input.trim() && !loading ? 1 : 0.5,
+                  transform: 'none',
+                }}
+                onMouseEnter={e => { if (input.trim() && !loading) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'none' }}
+              >
+                <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"/>
+                </svg>
               </button>
             </div>
-            <p style={{ fontSize: '0.71rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.5rem', textAlign: 'center' }}>
               🔒 Your conversation is private and stored only on this device
             </p>
           </div>
+
         </div>
 
         {/* Sidebar */}
