@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import CustomSelect from '@/components/CustomSelect'
 
 const chemicals = [
   { id: 1, name: 'Sulfuric Acid',      sku: 'TE-CHEM-001', category: 'Acids',    unit: 'kg',    stock: 1200, minStock: 200, price: 85,  status: 'in_stock' },
@@ -77,10 +78,16 @@ export default function ChemicalsPage() {
           <svg className="search-icon" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input type="text" className="form-input" placeholder="Search chemicals..." value={search} onChange={e => setSearch(e.target.value)} aria-label="Search chemicals" />
         </div>
-        <select className="form-select" style={{ width:'160px' }} value={category} onChange={e => setCategory(e.target.value)} aria-label="Filter by category">
-          <option value="">All Categories</option>
-          {['Acids','Bases','Solvents','Salts'].map(c => <option key={c}>{c}</option>)}
-        </select>
+        <CustomSelect
+          value={category}
+          onChange={setCategory}
+          style={{ width: '160px' }}
+          aria-label="Filter by category"
+          options={[
+            { value: '', label: 'All Categories' },
+            ...['Acids','Bases','Solvents','Salts'].map(c => ({ value: c, label: c }))
+          ]}
+        />
         <div style={{ marginLeft:'auto', fontSize:'0.82rem', color:'#64748B' }}>{filtered.length} results</div>
       </div>
 
@@ -147,15 +154,23 @@ export default function ChemicalsPage() {
                 </div>
                 <div className="form-group">
                   <label htmlFor="chem-cat" className="form-label">Category</label>
-                  <select id="chem-cat" className="form-select" value={form.category} onChange={e => setForm({...form, category:e.target.value})}>
-                    {['Acids','Bases','Solvents','Salts','Polymers','Other'].map(c => <option key={c}>{c}</option>)}
-                  </select>
+                  <CustomSelect
+                    id="chem-cat"
+                    value={form.category}
+                    onChange={v => setForm({...form, category: v})}
+                    options={['Acids','Bases','Solvents','Salts'].map(c => ({ value: c, label: c }))}
+                    style={{ width: '100%' }}
+                  />
                 </div>
                 <div className="form-group">
                   <label htmlFor="chem-unit" className="form-label">Unit *</label>
-                  <select id="chem-unit" className="form-select" value={form.unit} onChange={e => setForm({...form, unit:e.target.value})}>
-                    {['kg','liter','ton','drum','bag','piece'].map(u => <option key={u}>{u}</option>)}
-                  </select>
+                  <CustomSelect
+                    id="chem-unit"
+                    value={form.unit}
+                    onChange={v => setForm({...form, unit: v})}
+                    options={['kg','liter','g','ml','ton'].map(u => ({ value: u, label: u }))}
+                    style={{ width: '100%' }}
+                  />
                 </div>
                 <div className="form-group">
                   <label htmlFor="chem-min" className="form-label">Min Stock Alert</label>
