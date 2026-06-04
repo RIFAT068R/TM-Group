@@ -96,10 +96,10 @@ export async function GET() {
     const res = await fetch('https://api.resend.com/domains', {
       headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
     })
-    if (res.ok) {
-      results.resend = { status: 'connected', detail: 'Resend API key valid' }
+    const body = await res.json()
+    if (res.ok || body?.name === 'restricted_api_key') {
+      results.resend = { status: 'connected', detail: 'Resend API key is valid (Send Only Mode)' }
     } else {
-      const body = await res.json()
       results.resend = { status: 'error', detail: body?.message || 'Invalid key' }
     }
   } catch (e: unknown) {
