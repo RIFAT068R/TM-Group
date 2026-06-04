@@ -177,7 +177,7 @@ export default function TitasSettingsPage() {
             {[
               { key:'lowStock',       label:'Low Stock Alerts',       desc:'Alert when chemical stock falls below minimum' },
               { key:'newSale',        label:'New Sale Notifications',  desc:'Notify on every recorded sale' },
-              { key:'weeklyReport',   label:'Weekly Summary Email',    desc:'Auto-send weekly report every Monday' },
+              { key:'weeklyReport',   label:'Weekly Summary Email',    desc:'Auto-send weekly report every Friday' },
               { key:'monthlyReport',  label:'Monthly Report Email',    desc:'Auto-send monthly P&L report' },
               { key:'overdue',        label:'Overdue Invoice Alerts',  desc:'Alert for unpaid invoices > 7 days' },
             ].map(n => (

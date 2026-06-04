@@ -175,7 +175,7 @@ export default function TMSettingsPage() {
               { key:'visaExpiry',     label:'Visa Expiry Alerts',       desc:'Alert 90, 30, 7 days before visa expires' },
               { key:'passportExpiry', label:'Passport Expiry Alerts',    desc:'Alert when passport expiry is within 6 months' },
               { key:'newPlacement',   label:'New Placement Notification', desc:'Notify on each new placement record' },
-              { key:'weeklyReport',   label:'Weekly Summary Email',      desc:'Auto-send placement summary every Monday' },
+              { key:'weeklyReport',   label:'Weekly Summary Email',      desc:'Auto-send placement summary every Friday' },
               { key:'documentAlert',  label:'Document Upload Alerts',    desc:'Notify when workers upload new documents' },
             ].map(n=>(
               <div key={n.key} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0.875rem', background:'rgba(255,255,255,0.03)', borderRadius:'10px' }}>
