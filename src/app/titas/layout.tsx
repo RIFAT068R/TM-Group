@@ -41,6 +41,7 @@ const navItems = [
       { href: '/titas/categories', label: 'Categories', icon: <TagIcon /> },
       { href: '/titas/tasks',      label: 'Tasks',      icon: <CheckIcon /> },
       { href: '/titas/settings',   label: 'Settings',   icon: <CogIcon /> },
+      { href: '/titas/admin',      label: 'Admin Panel', icon: <ShieldIcon />, adminOnly: true },
     ],
   },
 ]
@@ -218,7 +219,9 @@ export default function TitasLayout({ children }: { children: React.ReactNode })
           {navItems.map(section => (
             <div key={section.section}>
               <div className="nav-section-label">{section.section}</div>
-              {section.items.map(item => (
+              {section.items
+                .filter((item: any) => !item.adminOnly || userRole === 'Titas Admin')
+                .map((item: any) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -252,7 +255,6 @@ export default function TitasLayout({ children }: { children: React.ReactNode })
               onClick={handleLogout}
               className={styles.logoutBtn}
               aria-label="Sign out"
-              data-tooltip="Sign out"
             >
               <LogoutIcon />
             </button>
@@ -315,6 +317,7 @@ export default function TitasLayout({ children }: { children: React.ReactNode })
 }
 
 /* ─── Inline SVG Icons ─── */
+function ShieldIcon() { return <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.955 11.955 0 003 10c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.249-8.25-3.286z"/></svg> }
 function GridIcon() { return <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> }
 function FlaskIcon() { return <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 3h6M9 3v7L3 21h18L15 10V3M6 17h12"/></svg> }
 function BoxIcon() { return <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg> }

@@ -1,0 +1,261 @@
+'use client'
+import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
+
+type UserRow = {
+  id: string
+  email: string
+  role: string
+  createdAt: string
+  lastSignIn: string | null
+}
+
+export default function AdminPanelPage() {
+  const [users, setUsers]           = useState<UserRow[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [error, setError]           = useState('')
+  const [isAdmin, setIsAdmin]       = useState(false)
+  const [token, setToken]           = useState('')
+  const [search, setSearch]         = useState('')
+  const [confirm, setConfirm]       = useState<UserRow | null>(null)
+  const [granting, setGranting]     = useState(false)
+  const [successMsg, setSuccessMsg] = useState('')
+
+  useEffect(() => {
+    const init = async () => {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { setError('Not authenticated'); setLoading(false); return }
+
+      const role = (
+        session.user.user_metadata?.role ||
+        session.user.app_metadata?.role ||
+        ''
+      ).toLowerCase()
+
+      if (role !== 'admin') {
+        setError('Access denied. Admin only.')
+        setLoading(false)
+        return
+      }
+
+      setIsAdmin(true)
+      setToken(session.access_token)
+    }
+    init()
+  }, [])
+
+  const fetchUsers = useCallback(async () => {
+    if (!token) return
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/admin', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to load users')
+      setUsers(data.users)
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (token) fetchUsers()
+  }, [token, fetchUsers])
+
+  const handleGrantAdmin = async () => {
+    if (!confirm) return
+    setGranting(true)
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ userId: confirm.id })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to grant admin')
+      setSuccessMsg(`✅ Admin role granted to ${confirm.email}`)
+      setConfirm(null)
+      fetchUsers()
+      setTimeout(() => setSuccessMsg(''), 4000)
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setGranting(false)
+    }
+  }
+
+  const filtered = users.filter(u =>
+    u.email?.toLowerCase().includes(search.toLowerCase())
+  )
+
+  const adminCount  = users.filter(u => u.role === 'admin').length
+  const viewerCount = users.filter(u => u.role !== 'admin').length
+
+  const fmt = (d: string | null) => {
+    if (!d) return '—'
+    return new Date(d).toLocaleDateString('en-BD', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+
+  if (!isAdmin && !loading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '1rem' }}>
+        <div style={{ fontSize: '3rem' }}>🔒</div>
+        <h2 style={{ fontSize: '1.3rem', fontWeight: 700 }}>Access Denied</h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>This page is only accessible to administrators.</p>
+        <Link href="/tm/dashboard" className="btn btn-primary">← Back to Dashboard</Link>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <nav className="breadcrumb mb-4">
+        <Link href="/tm/dashboard">Dashboard</Link>
+        <span className="breadcrumb-sep">›</span>
+        <span className="breadcrumb-current">Admin Panel</span>
+      </nav>
+
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Admin Panel</h1>
+          <p className="page-subtitle">Manage user access and roles</p>
+        </div>
+        <button className="btn btn-ghost btn-sm" onClick={fetchUsers} disabled={loading}>
+          {loading ? 'Loading...' : '↻ Refresh'}
+        </button>
+      </div>
+
+      {successMsg && (
+        <div style={{ background: '#D1FAE5', border: '1px solid #10B981', borderRadius: '10px', padding: '0.85rem 1.25rem', marginBottom: '1rem', color: '#065F46', fontWeight: 600, fontSize: '0.875rem' }}>
+          {successMsg}
+        </div>
+      )}
+      {error && (
+        <div style={{ background: '#FEE2E2', border: '1px solid #EF4444', borderRadius: '10px', padding: '0.85rem 1.25rem', marginBottom: '1rem', color: '#991B1B', fontWeight: 600, fontSize: '0.875rem' }}>
+          ⚠️ {error}
+        </div>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+        {[
+          { label: 'Total Users', value: users.length, color: 'var(--tm-primary, #0057B8)' },
+          { label: 'Admins', value: adminCount, color: '#7C3AED' },
+          { label: 'Viewers', value: viewerCount, color: '#6B7280' },
+        ].map(s => (
+          <div key={s.label} className="card" style={{ padding: '1.25rem', textAlign: 'center' }}>
+            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: s.color }}>{s.value}</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ background: '#EFF6FF', border: '1px solid #93C5FD', borderRadius: '10px', padding: '0.85rem 1.25rem', marginBottom: '1.25rem', fontSize: '0.82rem', color: '#1E40AF' }}>
+        <strong>ℹ️ Note:</strong> Admin roles can only be <strong>granted</strong> here. To revoke admin access, use the <strong>Supabase SQL Editor</strong> directly.
+      </div>
+
+      <div className="card" style={{ padding: '0.9rem 1.25rem', marginBottom: '1rem' }}>
+        <input
+          type="text"
+          className="input"
+          placeholder="Search by email..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ width: '100%' }}
+        />
+      </div>
+
+      <div className="card">
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>Loading users...</div>
+        ) : (
+          <div className="data-table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Joined</th>
+                  <th>Last Sign In</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(u => (
+                  <tr key={u.id}>
+                    <td style={{ fontWeight: 500 }}>{u.email}</td>
+                    <td>
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                        padding: '0.2rem 0.7rem', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 700,
+                        background: u.role === 'admin' ? '#EDE9FE' : 'var(--surface2)',
+                        color: u.role === 'admin' ? '#5B21B6' : 'var(--text-muted)',
+                      }}>
+                        {u.role === 'admin' ? '🔑 Admin' : '👤 Viewer'}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{fmt(u.createdAt)}</td>
+                    <td style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{fmt(u.lastSignIn)}</td>
+                    <td>
+                      {u.role === 'admin' ? (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Already Admin</span>
+                      ) : (
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => setConfirm(u)}
+                          style={{ fontSize: '0.78rem' }}
+                        >
+                          Make Admin
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr><td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No users found</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {confirm && (
+        <div className="modal-overlay" onClick={() => !granting && setConfirm(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 440 }}>
+            <div className="modal-header">
+              <h2 className="modal-title">Confirm Admin Access</h2>
+              <button className="modal-close" onClick={() => !granting && setConfirm(null)}>✕</button>
+            </div>
+            <div style={{ padding: '1.25rem 0', lineHeight: 1.7 }}>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                You are about to grant <strong>Admin</strong> access to:
+              </p>
+              <div style={{ background: 'var(--surface2)', borderRadius: '10px', padding: '0.9rem 1.2rem', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '1rem' }}>
+                📧 {confirm.email}
+              </div>
+              <div style={{ background: '#FEF3C7', border: '1px solid #F59E0B', borderRadius: '8px', padding: '0.75rem 1rem', fontSize: '0.8rem', color: '#92400E' }}>
+                ⚠️ <strong>Warning:</strong> This cannot be undone from this interface. To revoke, use the Supabase SQL Editor.
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={() => setConfirm(null)} disabled={granting}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleGrantAdmin} disabled={granting}
+                style={{ background: '#7C3AED', borderColor: '#7C3AED' }}>
+                {granting ? 'Granting...' : '🔑 Yes, Make Admin'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

@@ -487,7 +487,7 @@ export default function WorkersPage() {
                 <button 
                   className="btn btn-ghost btn-sm"
                   onClick={(e) => { e.stopPropagation(); handleViewProfile(w); }}
-                  title="Edit details"
+
                 >
                   ✏️
                 </button>
@@ -705,7 +705,7 @@ export default function WorkersPage() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                               <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>{doc.name}</div>
                               {doc.fallback && (
-                                <span title="Stored on Supabase Storage" style={{ fontSize: '0.75rem', cursor: 'help' }}>☁️</span>
+                                <span style={{ fontSize: '0.75rem', cursor: 'default' }}>☁️</span>
                               )}
                             </div>
                             <div style={{ fontSize: '0.69rem', color: 'var(--text-muted)' }}>Uploaded: {doc.date}</div>
@@ -719,7 +719,7 @@ export default function WorkersPage() {
                               className="btn btn-ghost btn-icon btn-sm" 
                               style={{ padding: '0.2rem', color: '#EF4444', height: '24px', width: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer' }} 
                               onClick={(e) => handleDeleteDoc(e, doc)}
-                              title="Delete Document"
+
                             >
                               🗑️
                             </button>
@@ -922,7 +922,7 @@ export default function WorkersPage() {
                 <iframe 
                   src={`https://drive.google.com/file/d/${previewDoc.fileId}/preview`} 
                   style={{ width: '100%', height: '380px', border: 'none', borderRadius: '8px' }} 
-                  title="Google Drive Document Preview"
+
                   allow="autoplay"
                 />
               ) : previewDoc.url && previewDoc.url.startsWith('http') ? (
@@ -937,7 +937,7 @@ export default function WorkersPage() {
                   <iframe 
                     src={previewDoc.url} 
                     style={{ width: '100%', height: '380px', border: 'none', borderRadius: '8px' }} 
-                    title="Document Preview"
+
                   />
                 )
               ) : previewDoc.name.includes('passport') ? (

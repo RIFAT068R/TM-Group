@@ -303,7 +303,7 @@ export default function TitasReportsPage() {
               style={{ padding: '0.4rem 0.6rem', fontSize: '0.82rem', flex: 1 }} 
               value={customStartDate} 
               onChange={e => setCustomStartDate(e.target.value)} 
-              title="Start Date"
+
             />
             <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>to</span>
             <input 
@@ -312,7 +312,7 @@ export default function TitasReportsPage() {
               style={{ padding: '0.4rem 0.6rem', fontSize: '0.82rem', flex: 1 }} 
               value={customEndDate} 
               onChange={e => setCustomEndDate(e.target.value)} 
-              title="End Date"
+
             />
           </div>
         )}

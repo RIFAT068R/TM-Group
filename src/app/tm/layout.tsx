@@ -39,6 +39,7 @@ const navItems = [
       { href: '/tm/categories',  label: 'Categories',  icon: <TagIcon /> },
       { href: '/tm/tasks',       label: 'Tasks',       icon: <CheckIcon /> },
       { href: '/tm/settings',    label: 'Settings',    icon: <CogIcon /> },
+      { href: '/tm/admin',       label: 'Admin Panel', icon: <ShieldIcon />, adminOnly: true },
     ],
   },
 ]
@@ -213,7 +214,9 @@ export default function TMLayout({ children }: { children: React.ReactNode }) {
           {navItems.map(section => (
             <div key={section.section}>
               <div className="nav-section-label">{section.section}</div>
-              {section.items.map(item => (
+              {section.items
+                .filter((item: any) => !item.adminOnly || userRole === 'TM Admin')
+                .map((item: any) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -239,7 +242,7 @@ export default function TMLayout({ children }: { children: React.ReactNode }) {
               <div className={styles.userName}>{user?.email?.split('@')[0] || 'User'}</div>
               <div className={styles.userRole}>{userRole}</div>
             </div>
-            <button onClick={handleLogout} className={styles.logoutBtn} aria-label="Sign out" data-tooltip="Sign out">
+            <button onClick={handleLogout} className={styles.logoutBtn} aria-label="Sign out">
               <LogoutIcon />
             </button>
           </div>
@@ -283,6 +286,7 @@ export default function TMLayout({ children }: { children: React.ReactNode }) {
   )
 }
 
+function ShieldIcon() { return <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.955 11.955 0 003 10c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.249-8.25-3.286z"/></svg> }
 function GridIcon() { return <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> }
 function UserIcon() { return <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg> }
 function BuildingIcon() { return <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15l-.75 18H5.25L4.5 3zM9 3v18M15 3v18M9 9h6M9 12h6M9 15h6"/></svg> }

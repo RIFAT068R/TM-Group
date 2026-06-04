@@ -116,8 +116,8 @@ export default function ChemicalsPage() {
                 <td><span className={`badge ${statusStyles[c.status].cls}`}>{statusStyles[c.status].label}</span></td>
                 <td>
                   <div style={{ display:'flex', gap:'0.4rem' }}>
-                    <button className="btn btn-ghost btn-sm" aria-label={`Edit ${c.name}`} data-tooltip="Edit">✏️</button>
-                    <button className="btn btn-danger btn-sm" aria-label={`Delete ${c.name}`} data-tooltip="Delete">🗑️</button>
+                    <button className="btn btn-ghost btn-sm" aria-label={`Edit ${c.name}`}>✏️</button>
+                    <button className="btn btn-danger btn-sm" aria-label={`Delete ${c.name}`}>🗑️</button>
                   </div>
                 </td>
               </tr>

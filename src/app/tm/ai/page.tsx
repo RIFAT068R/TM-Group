@@ -189,7 +189,7 @@ export default function TMAIPage() {
             onClick={clearHistory}
             className="btn btn-ghost btn-sm"
             style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}
-            title="Clear chat history"
+
           >
             🗑️ Clear Chat
           </button>
