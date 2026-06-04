@@ -158,19 +158,43 @@ export default function AdminPanelPage() {
         ))}
       </div>
 
-      <div style={{ background: '#EFF6FF', border: '1px solid #93C5FD', borderRadius: '10px', padding: '0.85rem 1.25rem', marginBottom: '1.25rem', fontSize: '0.82rem', color: '#1E40AF' }}>
-        <strong>ℹ️ Note:</strong> Admin roles can only be <strong>granted</strong> here. To revoke admin access, use the <strong>Supabase SQL Editor</strong> directly.
-      </div>
-
-      <div className="card" style={{ padding: '0.9rem 1.25rem', marginBottom: '1rem' }}>
+      {/* Search */}
+      <div style={{ position: 'relative', marginBottom: '1.25rem' }}>
+        <div style={{
+          position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)',
+          color: 'var(--text-muted)', pointerEvents: 'none', display: 'flex', alignItems: 'center'
+        }}>
+          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/><path strokeLinecap="round" d="M21 21l-4.35-4.35"/>
+          </svg>
+        </div>
         <input
           type="text"
-          className="input"
-          placeholder="Search by email..."
+          placeholder="Search users by email..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ width: '100%' }}
+          style={{
+            width: '100%', boxSizing: 'border-box',
+            padding: '0.85rem 1.1rem 0.85rem 2.75rem',
+            fontSize: '0.875rem', fontFamily: 'inherit',
+            background: 'var(--surface)', border: '1.5px solid var(--border)',
+            borderRadius: '12px', color: 'var(--text-primary)',
+            outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+          }}
+          onFocus={e => { e.target.style.borderColor = '#3B82F6'; e.target.style.boxShadow = '0 0 0 3px #EFF6FF'; }}
+          onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)'; }}
         />
+        {search && (
+          <button
+            onClick={() => setSearch('')}
+            style={{
+              position: 'absolute', right: '0.9rem', top: '50%', transform: 'translateY(-50%)',
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1, padding: '0.1rem'
+            }}
+          >✕</button>
+        )}
       </div>
 
       <div className="card">
