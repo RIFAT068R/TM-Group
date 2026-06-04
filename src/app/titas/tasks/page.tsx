@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import CustomSelect from '@/components/CustomSelect'
+import DatePicker from '@/components/DatePicker'
 
 type Task = { id:number; title:string; desc:string; priority:'high'|'medium'|'low'; due:string; done:boolean; module:string }
 
@@ -133,7 +134,7 @@ export default function TasksPage() {
                   </div>
                   <div className="form-group">
                     <label className="form-label">Due Date</label>
-                    <input type="date" className="form-input" value={form.due} onChange={e=>setForm({...form,due:e.target.value})} />
+                    <DatePicker value={form.due} onChange={v => setForm({...form, due: v})} placeholder="Pick a due date" />
                   </div>
                 </div>
               </div>

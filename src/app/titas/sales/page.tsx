@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import CustomSelect from '@/components/CustomSelect'
+import DatePicker from '@/components/DatePicker'
 
 const sales = [
   { id:'TE-2024-024', customer:'ACI Limited',           chemical:'Sulfuric Acid',     qty:500, unit:'kg',    buyPrice:85,  sellPrice:120, amount:60000, profit:17500, date:'2024-06-14', status:'paid' },
@@ -230,7 +231,7 @@ export default function SalesPage() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Sale Date</label>
-                  <input type="date" className="form-input" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} />
+                  <DatePicker value={form.date} onChange={v => setForm({...form, date: v})} placeholder="Select sale date" />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Buy Price (৳/unit)</label>

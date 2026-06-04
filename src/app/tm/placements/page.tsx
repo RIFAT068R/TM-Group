@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import CustomSelect from '@/components/CustomSelect'
+import DatePicker from '@/components/DatePicker'
 
 const placements = [
   { id:'TM-2024-018', worker:'Md. Rahim Uddin',  passport:'AB1234567', country:'Saudi Arabia', agency:'Al-Noor Recruitment',  position:'Construction Worker', salary:'SAR 1,200/mo', fee:65000, departureDate:'2024-05-10', status:'working',      visaExpiry:'2026-05-09', passportExpiry:'2027-03-15' },
@@ -244,11 +245,11 @@ export default function PlacementsPage() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Visa Expiry Date</label>
-                  <input type="date" className="form-input" />
+                  <DatePicker value="" onChange={() => {}} placeholder="Visa expiry date" />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Departure Date</label>
-                  <input type="date" className="form-input" />
+                  <DatePicker value="" onChange={() => {}} placeholder="Departure date" />
                 </div>
               </div>
             </div>

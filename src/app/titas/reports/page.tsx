@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { BarChart, Bar, AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import CustomSelect from '@/components/CustomSelect'
+import DatePicker from '@/components/DatePicker'
 
 // Consolidated rich database representing realistic chemical transactions in the year 2026
 const salesData = [
@@ -318,22 +319,18 @@ export default function TitasReportsPage() {
 
         {timeframe === 'Custom' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 300px' }}>
-            <input 
-              type="date" 
-              className="form-input" 
-              style={{ padding: '0.4rem 0.6rem', fontSize: '0.82rem', flex: 1 }} 
-              value={customStartDate} 
-              onChange={e => setCustomStartDate(e.target.value)} 
-
+            <DatePicker
+              value={customStartDate}
+              onChange={setCustomStartDate}
+              placeholder="Start date"
+              style={{ flex: 1 }}
             />
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>to</span>
-            <input 
-              type="date" 
-              className="form-input" 
-              style={{ padding: '0.4rem 0.6rem', fontSize: '0.82rem', flex: 1 }} 
-              value={customEndDate} 
-              onChange={e => setCustomEndDate(e.target.value)} 
-
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem', flexShrink: 0 }}>to</span>
+            <DatePicker
+              value={customEndDate}
+              onChange={setCustomEndDate}
+              placeholder="End date"
+              style={{ flex: 1 }}
             />
           </div>
         )}

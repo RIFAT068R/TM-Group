@@ -1243,3 +1243,213 @@ a:hover { color: var(--titas-primary-h); }
   body { background: white; color: black; }
   .card, .kpi-card, .chart-card { border: 1px solid #ddd; box-shadow: none; }
 }
+
+/* ─────────────────────────────────────────
+   PREMIUM DATE PICKER COMPONENT
+───────────────────────────────────────── */
+@keyframes dpFadeIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* Trigger button */
+.dp-trigger {
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: left;
+}
+.dp-trigger:focus {
+  border-color: var(--brand-accent);
+  box-shadow: 0 0 0 3px var(--brand-accent-soft);
+}
+.dp-disabled {
+  opacity: 0.55;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+/* Nav arrow buttons */
+.dp-nav-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+  flex-shrink: 0;
+}
+.dp-nav-btn:hover {
+  background: var(--brand-accent-soft);
+  border-color: var(--brand-accent);
+  color: var(--brand-accent);
+}
+
+/* Month/Year header buttons */
+.dp-header-btn {
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  line-height: 1;
+}
+.dp-header-btn:hover {
+  background: var(--brand-accent-soft);
+  color: var(--brand-accent);
+}
+
+/* Day cells */
+.dp-day {
+  background: transparent;
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  height: 34px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition), transform var(--transition);
+  position: relative;
+}
+.dp-day:hover:not(:disabled) {
+  background: var(--brand-accent-soft);
+  color: var(--brand-accent);
+  border-color: var(--brand-accent);
+  transform: scale(1.08);
+}
+.dp-day-today {
+  border-color: var(--brand-accent);
+  color: var(--brand-accent);
+  font-weight: 700;
+}
+.dp-day-today::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--brand-accent);
+}
+.dp-day-selected {
+  background: var(--brand-accent) !important;
+  color: #fff !important;
+  border-color: var(--brand-accent) !important;
+  font-weight: 700;
+  transform: none !important;
+  box-shadow: 0 2px 8px rgba(88,2,130,0.35);
+}
+.dp-day-selected::after { display: none; }
+
+/* Month picker */
+.dp-month-btn {
+  background: var(--surface2);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  text-align: center;
+}
+.dp-month-btn:hover {
+  background: var(--brand-accent-soft);
+  color: var(--brand-accent);
+  border-color: var(--brand-accent);
+}
+.dp-month-selected {
+  background: var(--brand-accent) !important;
+  color: #fff !important;
+  border-color: var(--brand-accent) !important;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(88,2,130,0.3);
+}
+
+/* Year picker */
+.dp-year-btn {
+  background: var(--surface2);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.45rem 0;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  text-align: center;
+}
+.dp-year-btn:hover {
+  background: var(--brand-accent-soft);
+  color: var(--brand-accent);
+  border-color: var(--brand-accent);
+}
+.dp-year-selected {
+  background: var(--brand-accent) !important;
+  color: #fff !important;
+  border-color: var(--brand-accent) !important;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(88,2,130,0.3);
+}
+
+/* Footer buttons */
+.dp-footer-btn {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.dp-footer-btn:hover {
+  background: var(--surface2);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+.dp-today-btn {
+  background: var(--brand-accent-soft);
+  border-color: var(--brand-accent);
+  color: var(--brand-accent);
+}
+.dp-today-btn:hover {
+  background: var(--brand-accent);
+  color: #fff;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] .dp-popup {
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
+}
+[data-theme="dark"] .dp-day-selected {
+  box-shadow: 0 2px 8px rgba(192,132,252,0.4);
+}
+[data-theme="dark"] .dp-month-selected,
+[data-theme="dark"] .dp-year-selected {
+  background: var(--brand-accent) !important;
+  box-shadow: 0 2px 8px rgba(192,132,252,0.3);
+}
+

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import CustomSelect from '@/components/CustomSelect'
+import DatePicker from '@/components/DatePicker'
 
 // consolidated database of workers in react-state list
 const initialWorkers = [
@@ -786,7 +787,7 @@ export default function WorkersPage() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Date of Birth</label>
-                  <input type="date" className="form-input" value={editForm.dob || ''} onChange={e => setEditForm({ ...editForm, dob: e.target.value })} />
+                  <DatePicker value={editForm.dob || ''} onChange={v => setEditForm({ ...editForm, dob: v })} placeholder="Date of birth" />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Destination Country</label>
@@ -807,7 +808,7 @@ export default function WorkersPage() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Passport Expiry</label>
-                  <input type="date" className="form-input" value={editForm.passportExpiry || ''} onChange={e => setEditForm({ ...editForm, passportExpiry: e.target.value })} />
+                  <DatePicker value={editForm.passportExpiry || ''} onChange={v => setEditForm({ ...editForm, passportExpiry: v })} placeholder="Passport expiry date" />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Placement Agency</label>
@@ -853,7 +854,7 @@ export default function WorkersPage() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Date of Birth</label>
-                  <input type="date" className="form-input" value={form.dob} onChange={e => setForm({ ...form, dob: e.target.value })} />
+                  <DatePicker value={form.dob} onChange={v => setForm({ ...form, dob: v })} placeholder="Date of birth" />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Phone Number</label>
@@ -865,7 +866,7 @@ export default function WorkersPage() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Passport Expiry</label>
-                  <input type="date" className="form-input" value={form.passportExpiry} onChange={e => setForm({ ...form, passportExpiry: e.target.value })} />
+                  <DatePicker value={form.passportExpiry} onChange={v => setForm({ ...form, passportExpiry: v })} placeholder="Passport expiry" />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Category</label>
