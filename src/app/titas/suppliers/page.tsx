@@ -223,41 +223,43 @@ export default function SuppliersPage() {
 
       {/* View Modal */}
       {selected && (
-        <div className="modal-overlay" onClick={() => setSelected(null)}>
+        <div className="modal-overlay" role="dialog" aria-modal="true" onClick={() => setSelected(null)}>
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 520 }}>
             <div className="modal-header">
-              <h2 className="modal-title">{selected.name}</h2>
-              <button className="modal-close" onClick={() => setSelected(null)}>✕</button>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 800 }}>{selected.name}</h2>
+              <button className="btn btn-ghost btn-icon" onClick={() => setSelected(null)}>✕</button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', padding: '1.25rem 0' }}>
-              {[
-                ['Country', `${COUNTRY_FLAGS[selected.country] || '🌐'} ${selected.country}`],
-                ['City', selected.city],
-                ['Contact Person', selected.contact],
-                ['Phone', selected.phone],
-                ['Email', selected.email],
-                ['Payment Terms', selected.paymentTerms],
-                ['Lead Time', `${selected.leadTimeDays} days`],
-                ['Status', selected.status.charAt(0).toUpperCase() + selected.status.slice(1)],
-                ['Total Orders', selected.totalOrders.toString()],
-                ['Total Value', '৳' + selected.totalValue.toLocaleString()],
-                ['Last Order', selected.lastOrder],
-              ].map(([label, value]) => (
-                <div key={label}>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.2rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
-                  <div style={{ fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: 500 }}>{value}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: '0.5rem' }}>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Chemicals Supplied</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                {selected.chemicals.map(c => (
-                  <span key={c} style={{ fontSize: '0.78rem', padding: '0.25rem 0.65rem', background: 'var(--brand-accent-soft)', color: 'var(--titas-primary)', borderRadius: '99px', fontWeight: 600 }}>{c}</span>
+            <div className="modal-body">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+                {[
+                  ['Country', `${COUNTRY_FLAGS[selected.country] || '🌐'} ${selected.country}`],
+                  ['City', selected.city],
+                  ['Contact Person', selected.contact],
+                  ['Phone', selected.phone],
+                  ['Email', selected.email],
+                  ['Payment Terms', selected.paymentTerms],
+                  ['Lead Time', `${selected.leadTimeDays} days`],
+                  ['Status', selected.status.charAt(0).toUpperCase() + selected.status.slice(1)],
+                  ['Total Orders', selected.totalOrders.toString()],
+                  ['Total Value', '৳' + selected.totalValue.toLocaleString()],
+                  ['Last Order', selected.lastOrder],
+                ].map(([label, value]) => (
+                  <div key={label}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.2rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: 500 }}>{value}</div>
+                  </div>
                 ))}
               </div>
+              <div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Chemicals Supplied</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  {selected.chemicals.map(c => (
+                    <span key={c} style={{ fontSize: '0.78rem', padding: '0.25rem 0.65rem', background: 'var(--brand-accent-soft)', color: 'var(--titas-primary)', borderRadius: '99px', fontWeight: 600 }}>{c}</span>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="modal-footer" style={{ marginTop: '1.5rem' }}>
+            <div className="modal-footer">
               <button className="btn btn-ghost" onClick={() => setSelected(null)}>Close</button>
             </div>
           </div>
@@ -266,30 +268,126 @@ export default function SuppliersPage() {
 
       {/* Add Supplier Modal */}
       {showAdd && isAdmin && (
-        <div className="modal-overlay" onClick={() => setShowAdd(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 500 }}>
+        <div className="modal-overlay" role="dialog" aria-modal="true" onClick={() => setShowAdd(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 540 }}>
             <div className="modal-header">
-              <h2 className="modal-title">Add New Supplier</h2>
-              <button className="modal-close" onClick={() => setShowAdd(false)}>✕</button>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Add New Supplier</h2>
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowAdd(false)}>✕</button>
             </div>
-            <div style={{ display: 'grid', gap: '0.875rem', padding: '1rem 0' }}>
-              {(['name', 'contact', 'phone', 'email', 'country', 'city', 'chemicals', 'paymentTerms', 'leadTimeDays'] as const).map(field => (
-                <div key={field}>
-                  <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem', textTransform: 'capitalize' }}>
-                    {field === 'paymentTerms' ? 'Payment Terms' : field === 'leadTimeDays' ? 'Lead Time (days)' : field.charAt(0).toUpperCase() + field.slice(1)}
-                  </label>
+            <div className="modal-body">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                  <label htmlFor="sup-name" className="form-label">Supplier Name *</label>
                   <input
-                    type={field === 'leadTimeDays' ? 'number' : 'text'}
-                    className="input"
-                    style={{ width: '100%' }}
-                    placeholder={field === 'chemicals' ? 'e.g. Sulfuric Acid, Ethanol' : ''}
-                    value={form[field]}
-                    onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
+                    id="sup-name"
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. China National Chemical Corp"
+                    value={form.name}
+                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                    required
                   />
                 </div>
-              ))}
+
+                <div className="form-group">
+                  <label htmlFor="sup-contact" className="form-label">Contact Person</label>
+                  <input
+                    id="sup-contact"
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. Zhang Wei"
+                    value={form.contact}
+                    onChange={e => setForm(f => ({ ...f, contact: e.target.value }))}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="sup-phone" className="form-label">Phone</label>
+                  <input
+                    id="sup-phone"
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. +86 10 5981-0000"
+                    value={form.phone}
+                    onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="sup-email" className="form-label">Email</label>
+                  <input
+                    id="sup-email"
+                    type="email"
+                    className="form-input"
+                    placeholder="e.g. export@cnchem.com"
+                    value={form.email}
+                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="sup-payment" className="form-label">Payment Terms</label>
+                  <input
+                    id="sup-payment"
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. Net 30"
+                    value={form.paymentTerms}
+                    onChange={e => setForm(f => ({ ...f, paymentTerms: e.target.value }))}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="sup-country" className="form-label">Country</label>
+                  <input
+                    id="sup-country"
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. China"
+                    value={form.country}
+                    onChange={e => setForm(f => ({ ...f, country: e.target.value }))}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="sup-city" className="form-label">City</label>
+                  <input
+                    id="sup-city"
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. Beijing"
+                    value={form.city}
+                    onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
+                  />
+                </div>
+
+                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                  <label htmlFor="sup-chemicals" className="form-label">Chemicals Supplied</label>
+                  <input
+                    id="sup-chemicals"
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. Sulfuric Acid, Ethanol"
+                    value={form.chemicals}
+                    onChange={e => setForm(f => ({ ...f, chemicals: e.target.value }))}
+                  />
+                  <span className="form-hint">Separate with commas</span>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="sup-lead" className="form-label">Lead Time (days)</label>
+                  <input
+                    id="sup-lead"
+                    type="number"
+                    className="form-input"
+                    placeholder="e.g. 21"
+                    value={form.leadTimeDays}
+                    onChange={e => setForm(f => ({ ...f, leadTimeDays: e.target.value }))}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="modal-footer" style={{ marginTop: '0.5rem' }}>
+            <div className="modal-footer">
               <button className="btn btn-ghost" onClick={() => setShowAdd(false)}>Cancel</button>
               <button className="btn btn-primary" onClick={() => setShowAdd(false)}>Save Supplier</button>
             </div>
