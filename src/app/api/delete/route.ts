@@ -17,7 +17,10 @@ export async function POST(req: NextRequest) {
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
     const origin = new URL(req.url).origin;
-    const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${origin}/api/auth/google/callback`;
+    let redirectUri = process.env.GOOGLE_REDIRECT_URI || `${origin}/api/auth/google/callback`;
+    if (redirectUri.includes('localhost') && !origin.includes('localhost')) {
+      redirectUri = `${origin}/api/auth/google/callback`;
+    }
 
     // Check if user is connected via OAuth 2.0
     if (!accessToken) {

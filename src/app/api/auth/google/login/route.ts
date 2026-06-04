@@ -6,7 +6,10 @@ export async function GET(req: Request) {
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
     const origin = new URL(req.url).origin;
-    const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${origin}/api/auth/google/callback`;
+    let redirectUri = process.env.GOOGLE_REDIRECT_URI || `${origin}/api/auth/google/callback`;
+    if (redirectUri.includes('localhost') && !origin.includes('localhost')) {
+      redirectUri = `${origin}/api/auth/google/callback`;
+    }
 
     if (!clientId || !clientSecret) {
       return NextResponse.json({
