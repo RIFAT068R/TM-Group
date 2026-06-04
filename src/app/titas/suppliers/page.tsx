@@ -88,22 +88,74 @@ export default function SuppliersPage() {
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="card" style={{ marginBottom: '1rem', padding: '1rem 1.25rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <input
-          type="text"
-          className="input"
-          placeholder="Search suppliers, countries, chemicals..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ flex: 1, minWidth: 220 }}
-        />
-        <select className="input" style={{ width: 140 }} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+      {/* Filters — Premium Search */}
+      <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+        {/* Search Input */}
+        <div style={{ position: 'relative', flex: 1, minWidth: 240 }}>
+          <div style={{
+            position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)',
+            color: 'var(--text-muted)', pointerEvents: 'none', display: 'flex', alignItems: 'center'
+          }}>
+            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"/><path strokeLinecap="round" d="M21 21l-4.35-4.35"/>
+            </svg>
+          </div>
+          <input
+            type="text"
+            placeholder="Search suppliers, countries, chemicals..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{
+              width: '100%', boxSizing: 'border-box',
+              padding: '0.82rem 2.5rem 0.82rem 2.75rem',
+              fontSize: '0.875rem', fontFamily: 'inherit',
+              background: 'var(--surface)', border: '1.5px solid var(--border)',
+              borderRadius: '12px', color: 'var(--text-primary)',
+              outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+            }}
+            onFocus={e => { e.target.style.borderColor = 'var(--brand-accent)'; e.target.style.boxShadow = '0 0 0 3px var(--brand-accent-soft)'; }}
+            onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)'; }}
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              style={{
+                position: 'absolute', right: '0.85rem', top: '50%', transform: 'translateY(-50%)',
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1, padding: '0.1rem'
+              }}
+            >&#x2715;</button>
+          )}
+        </div>
+
+        {/* Status Pill Filters */}
+        <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+          {[
+            { value: 'all', label: 'All' },
+            { value: 'active', label: 'Active' },
+            { value: 'inactive', label: 'Inactive' },
+          ].map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setStatusFilter(opt.value)}
+              style={{
+                padding: '0.5rem 1.1rem', borderRadius: '99px', fontSize: '0.8rem',
+                fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer',
+                border: '1.5px solid',
+                transition: 'all 0.18s ease',
+                borderColor: statusFilter === opt.value ? 'var(--titas-primary)' : 'var(--border)',
+                background: statusFilter === opt.value ? 'var(--brand-accent-soft)' : 'var(--surface)',
+                color: statusFilter === opt.value ? 'var(--titas-primary)' : 'var(--text-muted)',
+                boxShadow: statusFilter === opt.value ? '0 0 0 3px var(--brand-accent-soft)' : 'none',
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
+
 
       {/* Table */}
       <div className="card">
