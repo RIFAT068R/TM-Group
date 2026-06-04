@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import CustomSelect from '@/components/CustomSelect'
+
 
 const inventoryItems = [
   { id:1, chemical:'Sulfuric Acid',     sku:'TE-CHEM-001', supplier:'ABC Chemicals Ltd', buyPrice:85,  sellPrice:120, stock:1200, unit:'kg',    lastRestock:'2024-05-20', nextRestock:'2024-07-15' },
@@ -15,6 +17,7 @@ export default function InventoryPage() {
   const [search, setSearch] = useState('')
   const [showRestock, setShowRestock] = useState(false)
   const [selectedItem, setSelectedItem] = useState<typeof inventoryItems[0] | null>(null)
+  const [newRestockChemical, setNewRestockChemical] = useState(inventoryItems[0]?.chemical || '')
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
@@ -57,7 +60,7 @@ export default function InventoryPage() {
         </div>
         <div className="page-actions">
           {isAdmin && (
-            <button className="btn btn-primary" onClick={() => { setSelectedItem(null); setShowRestock(true); }}>
+            <button className="btn btn-primary" onClick={() => { setSelectedItem(null); setNewRestockChemical(inventoryItems[0]?.chemical || ''); setShowRestock(true); }}>
               + Restock Entry
             </button>
           )}
@@ -140,10 +143,14 @@ export default function InventoryPage() {
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem' }}>
                 {!selectedItem && (
                   <div className="form-group" style={{ gridColumn:'1/-1' }}>
-                    <label className="form-label">Chemical</label>
-                    <select className="form-select">
-                      {inventoryItems.map(i=><option key={i.id}>{i.chemical}</option>)}
-                    </select>
+                    <label htmlFor="restock-chem" className="form-label">Chemical</label>
+                    <CustomSelect
+                      id="restock-chem"
+                      value={newRestockChemical}
+                      onChange={setNewRestockChemical}
+                      options={inventoryItems.map(i => ({ value: i.chemical, label: i.chemical }))}
+                      style={{ width: '100%' }}
+                    />
                   </div>
                 )}
                 <div className="form-group">
