@@ -133,11 +133,11 @@ export default function TMSettingsPage() {
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem' }}>
             <div className="form-group" style={{ gridColumn:'1/-1' }}>
               <label className="form-label">Company Name</label>
-              <input className="form-input" value={profile.companyName} onChange={e=>setProfile({...profile,companyName:e.target.value})} />
+              <input className="form-input" value={profile.companyName} disabled style={{ opacity: 0.7, cursor: 'not-allowed' }} />
             </div>
             <div className="form-group">
               <label className="form-label">Owner / Admin Name</label>
-              <input className="form-input" value={profile.ownerName} onChange={e=>setProfile({...profile,ownerName:e.target.value})} />
+              <input className="form-input" value={profile.ownerName} disabled style={{ opacity: 0.7, cursor: 'not-allowed' }} />
             </div>
             <div className="form-group">
               <label className="form-label">Phone</label>
@@ -147,23 +147,16 @@ export default function TMSettingsPage() {
               <label className="form-label">Email</label>
               <input type="email" className="form-input" value={profile.email} disabled style={{ opacity: 0.7, cursor: 'not-allowed' }} />
             </div>
-            <div className="form-group">
+            <div className="form-group" style={{ gridColumn:'1/-1' }}>
               <label className="form-label">Currency</label>
               <CustomSelect
                 value={profile.currency}
                 onChange={v => setProfile({...profile, currency: v})}
                 style={{ width: '100%' }}
                 options={[
-                  { value: 'BDT (৳)', label: 'BDT (৳)' },
-                  { value: 'USD ($)', label: 'USD ($)' },
-                  { value: 'SAR (ر.س)', label: 'SAR (ر.س)' },
-                  { value: 'AED (د.إ)', label: 'AED (د.إ)' },
+                  { value: 'BDT (৳)', label: 'BDT (৳)' }
                 ]}
               />
-            </div>
-            <div className="form-group" style={{ gridColumn:'1/-1' }}>
-              <label className="form-label">Business Address</label>
-              <textarea className="form-textarea" rows={2} value={profile.address} onChange={e=>setProfile({...profile,address:e.target.value})} />
             </div>
           </div>
         </div>
