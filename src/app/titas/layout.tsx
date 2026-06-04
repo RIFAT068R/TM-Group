@@ -57,9 +57,27 @@ export default function TitasLayout({ children }: { children: React.ReactNode })
   const [userRole, setUserRole] = useState('Titas Viewer')
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (data.user) {
-        setUser({ email: data.user.email })
+        let fullName = data.user.user_metadata?.full_name || data.user.user_metadata?.ownerName || '';
+        
+        try {
+          const { data: profileRow } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', data.user.id)
+            .single()
+          if (profileRow?.full_name) {
+            fullName = profileRow.full_name
+          }
+        } catch (e) {
+          console.error('Error fetching profile row:', e)
+        }
+
+        setUser({ 
+          email: data.user.email,
+          full_name: fullName
+        })
         const role = (data.user.user_metadata?.role || data.user.app_metadata?.role || '').toLowerCase();
         if (role === 'admin') {
           setUserRole('Titas Admin')
@@ -245,10 +263,10 @@ export default function TitasLayout({ children }: { children: React.ReactNode })
           </Link>
           <div className={styles.userRow}>
             <div className={styles.userAvatar}>
-              {user?.email?.[0]?.toUpperCase() || 'U'}
+              {(user?.full_name || user?.email)?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className={styles.userInfo}>
-              <div className={styles.userName}>{user?.email?.split('@')[0] || 'User'}</div>
+              <div className={styles.userName}>{user?.full_name || user?.email?.split('@')[0] || 'User'}</div>
               <div className={styles.userRole}>{userRole}</div>
             </div>
             <button

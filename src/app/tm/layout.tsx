@@ -49,15 +49,33 @@ export default function TMLayout({ children }: { children: React.ReactNode }) {
   const router   = useRouter()
   const supabase = createClient()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [user, setUser] = useState<{ email?: string } | null>(null)
+  const [user, setUser] = useState<{ email?: string; full_name?: string } | null>(null)
   const [theme, setTheme] = useState('light')
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [userRole, setUserRole] = useState('TM Viewer')
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (data.user) {
-        setUser({ email: data.user.email })
+        let fullName = data.user.user_metadata?.full_name || data.user.user_metadata?.ownerName || '';
+        
+        try {
+          const { data: profileRow } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', data.user.id)
+            .single()
+          if (profileRow?.full_name) {
+            fullName = profileRow.full_name
+          }
+        } catch (e) {
+          console.error('Error fetching profile row:', e)
+        }
+
+        setUser({ 
+          email: data.user.email,
+          full_name: fullName
+        })
         const role = (data.user.user_metadata?.role || data.user.app_metadata?.role || '').toLowerCase();
         if (role === 'admin') {
           setUserRole('TM Admin')
@@ -237,9 +255,9 @@ export default function TMLayout({ children }: { children: React.ReactNode }) {
             <SwapIcon /> Switch Module
           </Link>
           <div className={styles.userRow}>
-            <div className={styles.userAvatar}>{user?.email?.[0]?.toUpperCase() || 'U'}</div>
+            <div className={styles.userAvatar}>{(user?.full_name || user?.email)?.[0]?.toUpperCase() || 'U'}</div>
             <div className={styles.userInfo}>
-              <div className={styles.userName}>{user?.email?.split('@')[0] || 'User'}</div>
+              <div className={styles.userName}>{user?.full_name || user?.email?.split('@')[0] || 'User'}</div>
               <div className={styles.userRole}>{userRole}</div>
             </div>
             <button onClick={handleLogout} className={styles.logoutBtn} aria-label="Sign out">

@@ -1,14 +1,116 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import CustomSelect from '@/components/CustomSelect'
+import { createClient } from '@/lib/supabase/client'
 
 export default function TitasSettingsPage() {
   const [profile, setProfile] = useState({ companyName:'Titas Enterprise', ownerName:'', email:'admin@titasbd.com', phone:'+880 1711-000000', address:'Dhaka, Bangladesh', currency:'BDT (৳)' })
   const [notifications, setNotifications] = useState({ lowStock:true, newSale:true, weeklyReport:true, monthlyReport:true, overdue:true })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
 
-  function save() { setSaved(true); setTimeout(()=>setSaved(false), 2000) }
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: profileRow } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', user.id)
+            .single()
+
+          const meta = user.user_metadata || {}
+          setProfile({
+            companyName: meta.companyName || 'Titas Enterprise',
+            ownerName: profileRow?.full_name || meta.ownerName || '',
+            email: user.email || 'admin@titasbd.com',
+            phone: meta.phone || '+880 1711-000000',
+            address: meta.address || 'Dhaka, Bangladesh',
+            currency: meta.currency || 'BDT (৳)',
+          })
+
+          if (meta.notifications) {
+            setNotifications({
+              lowStock: meta.notifications.lowStock !== undefined ? meta.notifications.lowStock : true,
+              newSale: meta.notifications.newSale !== undefined ? meta.notifications.newSale : true,
+              weeklyReport: meta.notifications.weeklyReport !== undefined ? meta.notifications.weeklyReport : true,
+              monthlyReport: meta.notifications.monthlyReport !== undefined ? meta.notifications.monthlyReport : true,
+              overdue: meta.notifications.overdue !== undefined ? meta.notifications.overdue : true,
+            })
+          }
+        }
+      } catch (err: any) {
+        console.error('Failed to load profile:', err)
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadProfile()
+  }, [])
+
+  async function save() {
+    setSaving(true)
+    setError('')
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
+
+      const { error: metaErr } = await supabase.auth.updateUser({
+        data: {
+          companyName: profile.companyName,
+          ownerName: profile.ownerName,
+          phone: profile.phone,
+          address: profile.address,
+          currency: profile.currency,
+          notifications: notifications
+        }
+      })
+      if (metaErr) throw metaErr
+
+      const { error: dbErr } = await supabase
+        .from('profiles')
+        .update({ full_name: profile.ownerName })
+        .eq('id', user.id)
+      if (dbErr) throw dbErr
+
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (err: any) {
+      console.error('Failed to save profile:', err)
+      setError(err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '1rem' }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          border: '4px solid rgba(0, 0, 0, 0.1)',
+          borderTopColor: '#2563EB',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+        }} />
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Loading settings...</p>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -20,6 +122,12 @@ export default function TitasSettingsPage() {
       <div className="page-header">
         <h1 className="page-title">Settings</h1>
       </div>
+
+      {error && (
+        <div style={{ background: '#FEE2E2', border: '1px solid #EF4444', borderRadius: '10px', padding: '0.85rem 1.25rem', marginBottom: '1.5rem', color: '#991B1B', fontWeight: 600, fontSize: '0.875rem', maxWidth: '700px' }}>
+          ⚠️ {error}
+        </div>
+      )}
 
       <div style={{ maxWidth:'700px', display:'flex', flexDirection:'column', gap:'1.5rem' }}>
         {/* Company Info */}
@@ -40,7 +148,7 @@ export default function TitasSettingsPage() {
             </div>
             <div className="form-group">
               <label className="form-label">Email</label>
-              <input type="email" className="form-input" value={profile.email} onChange={e=>setProfile({...profile,email:e.target.value})} />
+              <input type="email" className="form-input" value={profile.email} disabled style={{ opacity: 0.7, cursor: 'not-allowed' }} />
             </div>
             <div className="form-group">
               <label className="form-label">Currency</label>
@@ -91,8 +199,10 @@ export default function TitasSettingsPage() {
 
         {/* Save */}
         <div style={{ display:'flex', gap:'0.75rem' }}>
-          <button className="btn btn-primary" onClick={save}>{saved ? '✅ Saved!' : 'Save Changes'}</button>
-          <button className="btn btn-ghost">Reset</button>
+          <button className="btn btn-primary" onClick={save} disabled={saving}>
+            {saving ? '⏳ Saving...' : saved ? '✅ Saved!' : 'Save Changes'}
+          </button>
+          <button className="btn btn-ghost" onClick={() => window.location.reload()}>Reset</button>
         </div>
       </div>
     </div>
