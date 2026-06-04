@@ -920,7 +920,7 @@ export default function WorkersPage() {
         >
           <div 
             onClick={e => e.stopPropagation()}
-            style={{ width: '500px', maxWidth: '100%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '14px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+            style={{ width: '850px', maxWidth: '95%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '14px', boxShadow: '0 10px 40px rgba(0,0,0,0.25)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
           >
             {/* Modal Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
@@ -945,8 +945,7 @@ export default function WorkersPage() {
                 /* REAL GOOGLE DRIVE PREVIEW EMBED */
                 <iframe 
                   src={`https://drive.google.com/file/d/${previewDoc.fileId}/preview`} 
-                  style={{ width: '100%', height: '380px', border: 'none', borderRadius: '8px' }} 
-
+                  style={{ width: '100%', height: '580px', border: 'none', borderRadius: '8px' }} 
                   allow="autoplay"
                 />
               ) : previewDoc.url && previewDoc.url.startsWith('http') ? (
@@ -954,19 +953,18 @@ export default function WorkersPage() {
                 previewDoc.name.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
                   <img 
                     src={previewDoc.url} 
-                    style={{ maxWidth: '100%', maxHeight: '380px', objectFit: 'contain', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} 
+                    style={{ maxWidth: '100%', maxHeight: '580px', objectFit: 'contain', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }} 
                     alt="Document Preview"
                   />
                 ) : (
                   <iframe 
                     src={previewDoc.url} 
-                    style={{ width: '100%', height: '380px', border: 'none', borderRadius: '8px' }} 
-
+                    style={{ width: '100%', height: '580px', border: 'none', borderRadius: '8px' }} 
                   />
                 )
               ) : previewDoc.name.includes('passport') ? (
                 /* 1. MOCK PASSPORT SCAN */
-                <div style={{ width: '100%', background: '#FFFDF9', border: '2px solid #D5C19A', borderRadius: '10px', padding: '1rem', color: '#222121', boxShadow: '0 4px 15px rgba(0,0,0,0.06)' }}>
+                <div style={{ width: '100%', maxWidth: '560px', background: '#FFFDF9', border: '2px solid #D5C19A', borderRadius: '10px', padding: '1rem', color: '#222121', boxShadow: '0 4px 15px rgba(0,0,0,0.06)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #D5C19A', paddingBottom: '0.5rem', marginBottom: '0.75rem' }}>
                     <div style={{ fontWeight: 800, fontSize: '0.8rem', color: '#781D1D' }}>PASSPORT / RAHDARI</div>
                     <div style={{ fontWeight: 800, fontSize: '0.8rem', color: '#781D1D' }}>DEMOCRATIC PEOPLES REPUBLIC</div>
@@ -995,7 +993,7 @@ export default function WorkersPage() {
                 </div>
               ) : previewDoc.name.includes('medical') ? (
                 /* 2. MOCK MEDICAL CLEARANCE REPORT */
-                <div style={{ width: '100%', background: '#FFFFFF', border: '1px solid #E5E7EB', borderTop: '6px solid #10B981', borderRadius: '10px', padding: '1rem', color: '#222121', boxShadow: '0 4px 15px rgba(0,0,0,0.06)' }}>
+                <div style={{ width: '100%', maxWidth: '560px', background: '#FFFFFF', border: '1px solid #E5E7EB', borderTop: '6px solid #10B981', borderRadius: '10px', padding: '1rem', color: '#222121', boxShadow: '0 4px 15px rgba(0,0,0,0.06)' }}>
                   <div style={{ textAlign: 'center', borderBottom: '1px solid #E5E7EB', paddingBottom: '0.5rem', marginBottom: '0.75rem' }}>
                     <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#10B981', letterSpacing: '0.04em' }}>METRO DIAGNOSTIC CLINIC</div>
                     <div style={{ fontSize: '0.62rem', color: '#666' }}>Dhaka, Bangladesh · ISO Certified</div>
@@ -1018,7 +1016,7 @@ export default function WorkersPage() {
                 </div>
               ) : previewDoc.name.includes('visa') ? (
                 /* 3. MOCK VISA STAMPING STICKER */
-                <div style={{ width: '100%', background: '#F1F5F9', border: '2px solid #3B82F6', borderRadius: '10px', padding: '1rem', color: '#222121', boxShadow: '0 4px 15px rgba(0,0,0,0.06)', backgroundImage: 'radial-gradient(#CBD5E1 1px, transparent 1px)', backgroundSize: '8px 8px' }}>
+                <div style={{ width: '100%', maxWidth: '560px', background: '#F1F5F9', border: '2px solid #3B82F6', borderRadius: '10px', padding: '1rem', color: '#222121', boxShadow: '0 4px 15px rgba(0,0,0,0.06)', backgroundImage: 'radial-gradient(#CBD5E1 1px, transparent 1px)', backgroundSize: '8px 8px' }}>
                   <div style={{ background: '#3B82F6', color: '#FFF', padding: '0.25rem 0.5rem', fontSize: '0.7rem', fontWeight: 800, borderRadius: '4px', textAlign: 'center', marginBottom: '0.75rem', letterSpacing: '0.05em' }}>
                     VISA ENTRY PERMIT STAMP
                   </div>
@@ -1036,7 +1034,7 @@ export default function WorkersPage() {
                 </div>
               ) : (
                 /* 4. GENERIC UPLOADED DOCUMENT */
-                <div style={{ width: '100%', background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '10px', padding: '1.5rem', color: '#222121', textAlign: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.06)' }}>
+                <div style={{ width: '100%', maxWidth: '560px', background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '10px', padding: '1.5rem', color: '#222121', textAlign: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.06)' }}>
                   <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>📁</div>
                   <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.25rem' }}>{previewDoc.name}</h4>
                   <p style={{ fontSize: '0.72rem', color: '#666', lineHeight: '1.4', marginBottom: '1rem' }}>
