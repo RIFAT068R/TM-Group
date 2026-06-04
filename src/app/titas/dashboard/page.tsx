@@ -144,10 +144,6 @@ export default function TitasDashboard() {
           <p className="page-subtitle">Here's your business overview for today · {new Date().toLocaleDateString('en-BD', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}</p>
         </div>
         <div className="page-actions">
-          <Link href="/titas/sales?add=true" className="btn btn-primary">
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-            New Sale
-          </Link>
           <Link href="/titas/reports" className="btn btn-ghost">View Reports</Link>
         </div>
       </div>

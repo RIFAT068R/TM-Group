@@ -141,10 +141,6 @@ export default function TMDashboard() {
           <p className="page-subtitle">Manpower management overview · {new Date().toLocaleDateString('en-BD', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}</p>
         </div>
         <div className="page-actions">
-          <Link href="/tm/workers?add=true" className="btn btn-tm">
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-            Add Worker
-          </Link>
           <Link href="/tm/placements" className="btn btn-ghost">View Placements</Link>
         </div>
       </div>
