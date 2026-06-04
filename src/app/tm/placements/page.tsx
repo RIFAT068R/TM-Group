@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import CustomSelect from '@/components/CustomSelect'
 
 const placements = [
   { id:'TM-2024-018', worker:'Md. Rahim Uddin',  passport:'AB1234567', country:'Saudi Arabia', agency:'Al-Noor Recruitment',  position:'Construction Worker', salary:'SAR 1,200/mo', fee:65000, departureDate:'2024-05-10', status:'working',      visaExpiry:'2026-05-09', passportExpiry:'2027-03-15' },
@@ -97,10 +98,19 @@ export default function PlacementsPage() {
           <svg className="search-icon" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input className="form-input" placeholder="Search worker or country..." value={search} onChange={e=>setSearch(e.target.value)} />
         </div>
-        <select className="form-select" style={{ width:'160px' }} value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}>
-          <option value="">All Status</option>
-          {['working','processing','visa_approved','departed','returned'].map(s=><option key={s}>{s}</option>)}
-        </select>
+        <CustomSelect
+          value={statusFilter}
+          onChange={setStatusFilter}
+          style={{ width: '160px' }}
+          options={[
+            { value: '', label: 'All Status' },
+            { value: 'working', label: 'Working' },
+            { value: 'processing', label: 'Processing' },
+            { value: 'visa_approved', label: 'Visa Approved' },
+            { value: 'departed', label: 'Departed' },
+            { value: 'returned', label: 'Returned' },
+          ]}
+        />
         <div style={{ marginLeft:'auto', fontSize:'0.82rem', color:'#64748B' }}>{filtered.length} records</div>
       </div>
 
@@ -192,10 +202,16 @@ export default function PlacementsPage() {
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem' }}>
                 <div className="form-group" style={{ gridColumn:'1/-1' }}>
                   <label className="form-label">Worker *</label>
-                  <select className="form-select">
-                    <option>Select worker...</option>
-                    {['Md. Rahim Uddin','Abdul Karim','Fatema Begum','Md. Hasan Ali'].map(w=><option key={w}>{w}</option>)}
-                  </select>
+                  <CustomSelect
+                    value=""
+                    onChange={() => {}}
+                    placeholder="Select worker..."
+                    style={{ width: '100%' }}
+                    options={[
+                      { value: '', label: 'Select worker...' },
+                      ...['Md. Rahim Uddin','Abdul Karim','Fatema Begum','Md. Hasan Ali'].map(w => ({ value: w, label: w }))
+                    ]}
+                  />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Country *</label>
@@ -203,10 +219,16 @@ export default function PlacementsPage() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Agency *</label>
-                  <select className="form-select">
-                    <option>Select agency...</option>
-                    {['Al-Noor Recruitment','Gulf Connect BD','Middle East HR','Kuwait Manpower Co.'].map(a=><option key={a}>{a}</option>)}
-                  </select>
+                  <CustomSelect
+                    value=""
+                    onChange={() => {}}
+                    placeholder="Select agency..."
+                    style={{ width: '100%' }}
+                    options={[
+                      { value: '', label: 'Select agency...' },
+                      ...['Al-Noor Recruitment','Gulf Connect BD','Middle East HR','Kuwait Manpower Co.'].map(a => ({ value: a, label: a }))
+                    ]}
+                  />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Position / Job Type</label>

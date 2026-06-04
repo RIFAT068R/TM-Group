@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import CustomSelect from '@/components/CustomSelect'
 
 type Task = { id:number; title:string; desc:string; priority:'high'|'medium'|'low'; due:string; done:boolean; module:string }
 
@@ -106,15 +107,29 @@ export default function TasksPage() {
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'0.75rem' }}>
                   <div className="form-group">
                     <label className="form-label">Priority</label>
-                    <select className="form-select" value={form.priority} onChange={e=>setForm({...form,priority:e.target.value})}>
-                      {['high','medium','low'].map(p=><option key={p}>{p}</option>)}
-                    </select>
+                    <CustomSelect
+                      value={form.priority}
+                      onChange={v => setForm({...form, priority: v as any})}
+                      options={[
+                        { value: 'high', label: 'High' },
+                        { value: 'medium', label: 'Medium' },
+                        { value: 'low', label: 'Low' },
+                      ]}
+                      style={{ width: '100%' }}
+                    />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Module</label>
-                    <select className="form-select" value={form.module} onChange={e=>setForm({...form,module:e.target.value})}>
-                      <option>Titas</option><option>TM</option><option>Both</option>
-                    </select>
+                    <CustomSelect
+                      value={form.module}
+                      onChange={v => setForm({...form, module: v})}
+                      options={[
+                        { value: 'Titas', label: 'Titas' },
+                        { value: 'TM', label: 'TM' },
+                        { value: 'Both', label: 'Both' },
+                      ]}
+                      style={{ width: '100%' }}
+                    />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Due Date</label>

@@ -6,6 +6,7 @@ import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ZAxis, 
   PieChart, Pie, Cell, LineChart, Line, Legend 
 } from 'recharts'
+import CustomSelect from '@/components/CustomSelect'
 
 // High-fidelity performance radar data
 const radarData = [
@@ -260,9 +261,12 @@ export default function TitasAnalyticsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                 <label className="form-label">Chemical Product</label>
-                <select className="form-select" value={simName} onChange={e => setSimName(e.target.value)}>
-                  {['Sulfuric Acid', 'Sodium Hydroxide', 'Hydrochloric Acid', 'Ethanol', 'Acetone', 'Methanol'].map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                <CustomSelect
+                  value={simName}
+                  onChange={setSimName}
+                  style={{ width: '100%' }}
+                  options={['Sulfuric Acid','Sodium Hydroxide','Hydrochloric Acid','Ethanol','Acetone','Methanol'].map(c => ({ value: c, label: c }))}
+                />
               </div>
 
               <div className="form-group">

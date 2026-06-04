@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { BarChart, Bar, AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import CustomSelect from '@/components/CustomSelect'
 
 // Consolidated rich database representing realistic chemical transactions in the year 2026
 const salesData = [
@@ -265,35 +266,55 @@ export default function TitasReportsPage() {
           <input className="form-input" style={{ width: '100%' }} placeholder="Search sales registry..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
 
-        <select className="form-select" style={{ flex: '1 1 140px' }} value={chemicalFilter} onChange={e => setChemicalFilter(e.target.value)}>
-          <option value="">All Chemicals</option>
-          {uniqueChemicals.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+        <CustomSelect
+          value={chemicalFilter}
+          onChange={setChemicalFilter}
+          style={{ flex: '1 1 140px', minWidth: 140 }}
+          options={[
+            { value: '', label: 'All Chemicals' },
+            ...uniqueChemicals.map(c => ({ value: c, label: c }))
+          ]}
+        />
 
-        <select className="form-select" style={{ flex: '1 1 140px' }} value={customerFilter} onChange={e => setCustomerFilter(e.target.value)}>
-          <option value="">All Customers</option>
-          {uniqueCustomers.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+        <CustomSelect
+          value={customerFilter}
+          onChange={setCustomerFilter}
+          style={{ flex: '1 1 140px', minWidth: 140 }}
+          options={[
+            { value: '', label: 'All Customers' },
+            ...uniqueCustomers.map(c => ({ value: c, label: c }))
+          ]}
+        />
 
-        <select className="form-select" style={{ flex: '1 1 120px' }} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-          <option value="">All Statuses</option>
-          {['paid', 'pending', 'overdue', 'partial'].map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
+        <CustomSelect
+          value={statusFilter}
+          onChange={setStatusFilter}
+          style={{ flex: '1 1 120px', minWidth: 120 }}
+          options={[
+            { value: '', label: 'All Statuses' },
+            { value: 'paid', label: 'Paid' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'overdue', label: 'Overdue' },
+            { value: 'partial', label: 'Partial' },
+          ]}
+        />
 
-        <select className="form-select" style={{ flex: '1 1 120px' }} value={timeframe} onChange={e => {
-          setTimeframe(e.target.value);
-          if (e.target.value !== 'Custom') {
-            setCustomStartDate('');
-            setCustomEndDate('');
-          }
-        }}>
-          <option value="All Time">All Time</option>
-          <option value="Daily">Daily (Today)</option>
-          <option value="Weekly">Weekly (Last 7 Days)</option>
-          <option value="Monthly">Monthly (June)</option>
-          <option value="Yearly">Yearly (2026)</option>
-          <option value="Custom">Custom Date Range...</option>
-        </select>
+        <CustomSelect
+          value={timeframe}
+          onChange={v => {
+            setTimeframe(v);
+            if (v !== 'Custom') { setCustomStartDate(''); setCustomEndDate(''); }
+          }}
+          style={{ flex: '1 1 120px', minWidth: 140 }}
+          options={[
+            { value: 'All Time', label: 'All Time' },
+            { value: 'Daily', label: 'Daily (Today)' },
+            { value: 'Weekly', label: 'Weekly (Last 7 Days)' },
+            { value: 'Monthly', label: 'Monthly (June)' },
+            { value: 'Yearly', label: 'Yearly (2026)' },
+            { value: 'Custom', label: 'Custom Date Range...' },
+          ]}
+        />
 
         {timeframe === 'Custom' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 300px' }}>

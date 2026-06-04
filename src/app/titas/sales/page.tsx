@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import CustomSelect from '@/components/CustomSelect'
 
 const sales = [
   { id:'TE-2024-024', customer:'ACI Limited',           chemical:'Sulfuric Acid',     qty:500, unit:'kg',    buyPrice:85,  sellPrice:120, amount:60000, profit:17500, date:'2024-06-14', status:'paid' },
@@ -102,10 +103,18 @@ export default function SalesPage() {
           <svg className="search-icon" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input className="form-input" placeholder="Search customer or chemical..." value={search} onChange={e=>setSearch(e.target.value)} />
         </div>
-        <select className="form-select" style={{ width:'140px' }} value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}>
-          <option value="">All Status</option>
-          {['paid','pending','overdue','partial'].map(s=><option key={s}>{s}</option>)}
-        </select>
+        <CustomSelect
+          value={statusFilter}
+          onChange={setStatusFilter}
+          style={{ width: '140px' }}
+          options={[
+            { value: '', label: 'All Status' },
+            { value: 'paid', label: 'Paid' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'overdue', label: 'Overdue' },
+            { value: 'partial', label: 'Partial' },
+          ]}
+        />
         <div style={{ marginLeft:'auto', fontSize:'0.82rem', color:'#64748B' }}>{filtered.length} orders</div>
       </div>
 
@@ -191,17 +200,29 @@ export default function SalesPage() {
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem' }}>
                 <div className="form-group" style={{ gridColumn:'1/-1' }}>
                   <label className="form-label">Customer *</label>
-                  <select className="form-select" value={form.customer} onChange={e=>setForm({...form,customer:e.target.value})}>
-                    <option value="">Select customer...</option>
-                    {['ACI Limited','Square Pharmaceuticals','Renata Limited','BRAC','Bashundhara Group','Padma Chemicals'].map(c=><option key={c}>{c}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={form.customer}
+                    onChange={v => setForm({...form, customer: v})}
+                    placeholder="Select customer..."
+                    style={{ width: '100%' }}
+                    options={[
+                      { value: '', label: 'Select customer...' },
+                      ...['ACI Limited','Square Pharmaceuticals','Renata Limited','BRAC','Bashundhara Group','Padma Chemicals'].map(c => ({ value: c, label: c }))
+                    ]}
+                  />
                 </div>
                 <div className="form-group" style={{ gridColumn:'1/-1' }}>
                   <label className="form-label">Chemical *</label>
-                  <select className="form-select" value={form.chemical} onChange={e=>setForm({...form,chemical:e.target.value})}>
-                    <option value="">Select chemical...</option>
-                    {['Sulfuric Acid','Sodium Hydroxide','Hydrochloric Acid','Ethanol','Acetone','Methanol'].map(c=><option key={c}>{c}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={form.chemical}
+                    onChange={v => setForm({...form, chemical: v})}
+                    placeholder="Select chemical..."
+                    style={{ width: '100%' }}
+                    options={[
+                      { value: '', label: 'Select chemical...' },
+                      ...['Sulfuric Acid','Sodium Hydroxide','Hydrochloric Acid','Ethanol','Acetone','Methanol'].map(c => ({ value: c, label: c }))
+                    ]}
+                  />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Quantity *</label>

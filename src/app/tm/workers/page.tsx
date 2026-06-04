@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import CustomSelect from '@/components/CustomSelect'
 
 // consolidated database of workers in react-state list
 const initialWorkers = [
@@ -430,10 +431,15 @@ export default function WorkersPage() {
           <svg className="search-icon" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input className="form-input" placeholder="Search by name or passport..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <select className="form-select" style={{ width: '160px' }} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-          <option value="">All Status</option>
-          {Object.entries(statusColors).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-        </select>
+        <CustomSelect
+          value={statusFilter}
+          onChange={setStatusFilter}
+          style={{ width: '160px' }}
+          options={[
+            { value: '', label: 'All Status' },
+            ...Object.entries(statusColors).map(([k, v]) => ({ value: k, label: v.label }))
+          ]}
+        />
         <div style={{ marginLeft: 'auto', fontSize: '0.82rem', color: 'var(--text-muted)' }}>{filtered.length} workers</div>
       </div>
 
@@ -788,9 +794,12 @@ export default function WorkersPage() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Placement Category</label>
-                  <select className="form-select" value={editForm.category || ''} onChange={e => setEditForm({ ...editForm, category: e.target.value })}>
-                    {['Middle East', 'Southeast Asia', 'Europe', 'Other'].map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={editForm.category || ''}
+                    onChange={v => setEditForm({ ...editForm, category: v })}
+                    style={{ width: '100%' }}
+                    options={['Middle East','Southeast Asia','Europe','Other'].map(c => ({ value: c, label: c }))}
+                  />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Phone Contact</label>
@@ -802,12 +811,16 @@ export default function WorkersPage() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Placement Agency</label>
-                  <select className="form-select" value={editForm.agency || ''} onChange={e => setEditForm({ ...editForm, agency: e.target.value })}>
-                    <option value="">Select Agency...</option>
-                    {['Al-Noor Recruitment', 'Gulf Connect BD', 'Middle East HR', 'Kuwait Manpower Co.', 'SEA Recruitment', 'EuroLink Manpower'].map(a => (
-                      <option key={a} value={a}>{a}</option>
-                    ))}
-                  </select>
+                  <CustomSelect
+                    value={editForm.agency || ''}
+                    onChange={v => setEditForm({ ...editForm, agency: v })}
+                    placeholder="Select Agency..."
+                    style={{ width: '100%' }}
+                    options={[
+                      { value: '', label: 'Select Agency...' },
+                      ...['Al-Noor Recruitment','Gulf Connect BD','Middle East HR','Kuwait Manpower Co.','SEA Recruitment','EuroLink Manpower'].map(a => ({ value: a, label: a }))
+                    ]}
+                  />
                 </div>
 
                 <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1rem', display: 'flex', gap: '0.5rem' }}>
@@ -856,24 +869,34 @@ export default function WorkersPage() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Category</label>
-                  <select className="form-select" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-                    {['Middle East', 'Southeast Asia', 'Europe', 'Other'].map(c => <option key={c}>{c}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={form.category}
+                    onChange={v => setForm({ ...form, category: v })}
+                    style={{ width: '100%' }}
+                    options={['Middle East','Southeast Asia','Europe','Other'].map(c => ({ value: c, label: c }))}
+                  />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Status</label>
-                  <select className="form-select" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
-                    {['registered', 'processing', 'medically_fit', 'visa_approved', 'departed', 'working'].map(s => <option key={s} value={s}>{statusColors[s]?.label || s}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={form.status}
+                    onChange={v => setForm({ ...form, status: v })}
+                    style={{ width: '100%' }}
+                    options={['registered','processing','medically_fit','visa_approved','departed','working'].map(s => ({ value: s, label: statusColors[s]?.label || s }))}
+                  />
                 </div>
                 <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                   <label className="form-label">Placement Agency</label>
-                  <select className="form-select" value={form.agency || ''} onChange={e => setForm({ ...form, agency: e.target.value })}>
-                    <option value="">Select Agency...</option>
-                    {['Al-Noor Recruitment', 'Gulf Connect BD', 'Middle East HR', 'Kuwait Manpower Co.', 'SEA Recruitment', 'EuroLink Manpower'].map(a => (
-                      <option key={a} value={a}>{a}</option>
-                    ))}
-                  </select>
+                  <CustomSelect
+                    value={form.agency || ''}
+                    onChange={v => setForm({ ...form, agency: v })}
+                    placeholder="Select Agency..."
+                    style={{ width: '100%' }}
+                    options={[
+                      { value: '', label: 'Select Agency...' },
+                      ...['Al-Noor Recruitment','Gulf Connect BD','Middle East HR','Kuwait Manpower Co.','SEA Recruitment','EuroLink Manpower'].map(a => ({ value: a, label: a }))
+                    ]}
+                  />
                 </div>
               </div>
               <div style={{ background: 'rgba(76,209,214,0.02)', border: '1px dashed var(--brand-accent)', borderRadius: '10px', padding: '0.875rem', marginTop: '1rem', fontSize: '0.82rem', color: 'var(--text-muted)' }}>

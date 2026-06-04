@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import CustomSelect from '@/components/CustomSelect'
 
 export default function TitasSettingsPage() {
   const [profile, setProfile] = useState({ companyName:'Titas Enterprise', ownerName:'', email:'admin@titasbd.com', phone:'+880 1711-000000', address:'Dhaka, Bangladesh', currency:'BDT (৳)' })
@@ -43,9 +44,16 @@ export default function TitasSettingsPage() {
             </div>
             <div className="form-group">
               <label className="form-label">Currency</label>
-              <select className="form-select" value={profile.currency} onChange={e=>setProfile({...profile,currency:e.target.value})}>
-                {['BDT (৳)','USD ($)','EUR (€)'].map(c=><option key={c}>{c}</option>)}
-              </select>
+              <CustomSelect
+                value={profile.currency}
+                onChange={v => setProfile({...profile, currency: v})}
+                style={{ width: '100%' }}
+                options={[
+                  { value: 'BDT (৳)', label: 'BDT (৳)' },
+                  { value: 'USD ($)', label: 'USD ($)' },
+                  { value: 'EUR (€)', label: 'EUR (€)' },
+                ]}
+              />
             </div>
             <div className="form-group" style={{ gridColumn:'1/-1' }}>
               <label className="form-label">Business Address</label>
