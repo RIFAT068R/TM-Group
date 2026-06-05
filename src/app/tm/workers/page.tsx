@@ -183,7 +183,7 @@ export default function WorkersPage() {
   // Google OAuth Tokens State
   const [googleTokens, setGoogleTokens] = useState<any | null>(null)
 
-  // Load state from localStorage on client mount (safe from server hydration mismatch)
+  // Load state from Supabase on client mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const checkRole = async () => {
@@ -199,14 +199,145 @@ export default function WorkersPage() {
       };
       checkRole();
 
-      const saved = localStorage.getItem('tm_workers_list');
-      if (saved) {
+      const loadWorkersFromSupabase = async () => {
         try {
-          setWorkersList(JSON.parse(saved));
+          const { createClient } = await import('@/lib/supabase/client');
+          const supabase = createClient();
+
+          // Fetch workers
+          const { data: dbWorkers, error: workersError } = await supabase
+            .from('tm_workers')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (workersError) {
+            console.error('Failed to load workers from Supabase:', workersError);
+            const saved = localStorage.getItem('tm_workers_list');
+            if (saved) {
+              try { setWorkersList(JSON.parse(saved)); } catch (e) {}
+            }
+            return;
+          }
+
+          // Fetch documents
+          const { data: dbDocs } = await supabase
+            .from('tm_documents')
+            .select('*');
+
+          if (dbWorkers && dbWorkers.length > 0) {
+            const mapped = dbWorkers.map((w: any) => {
+              const workerDocs = dbDocs
+                ? dbDocs
+                    .filter((d: any) => d.worker_id === w.id)
+                    .map((d: any) => ({
+                      name: d.document_name,
+                      fileId: d.drive_file_id,
+                      url: d.drive_view_url,
+                      downloadUrl: d.drive_download_url,
+                      size: d.file_size ? `${(d.file_size / (1024 * 1024)).toFixed(2)} MB` : '1.2 MB',
+                      date: d.uploaded_at ? new Date(d.uploaded_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+                    }))
+                : [];
+
+              let salary = '';
+              let agency = '';
+              let fee = '';
+              let departureDate = '';
+              if (w.notes) {
+                const parts = w.notes.split('|');
+                salary = parts[0] || '';
+                agency = parts[1] || '';
+                fee = parts[2] || '';
+                departureDate = parts[3] || '';
+              }
+
+              return {
+                id: w.id,
+                name: w.full_name,
+                passport: w.passport_number || '',
+                dob: w.date_of_birth || '',
+                phone: w.phone || '',
+                country: w.nationality || '',
+                status: w.status || 'registered',
+                passportExpiry: w.passport_expiry_date || '',
+                visaExpiry: w.visa_expiry_date || '',
+                position: w.profession || '',
+                salary,
+                agency,
+                fee,
+                departureDate,
+                documents: workerDocs
+              };
+            });
+
+            setWorkersList(mapped);
+
+            const params = new URLSearchParams(window.location.search);
+            const viewWorkerParam = params.get('view');
+            if (viewWorkerParam) {
+              const found = mapped.find((item: any) =>
+                item.passport === viewWorkerParam ||
+                item.id === viewWorkerParam ||
+                item.name.toLowerCase() === viewWorkerParam.toLowerCase()
+              );
+              if (found) {
+                setActiveWorker(found);
+                setEditForm({ ...found });
+                setIsEditing(false);
+              }
+            }
+          } else {
+            // Seed initialWorkers if table is empty
+            const seedData = initialWorkers.map((w: any) => ({
+              full_name: w.name,
+              passport_number: w.passport,
+              date_of_birth: w.dob || null,
+              phone: w.phone || null,
+              nationality: w.country || null,
+              status: w.status,
+              passport_expiry_date: w.passportExpiry || null,
+              visa_expiry_date: w.visaExpiry || null,
+              profession: w.position || null,
+              notes: `${w.salary || ''}|${w.agency || ''}|${w.fee || ''}|${w.departureDate || ''}`
+            }));
+
+            const { data: inserted, error: insertError } = await supabase
+              .from('tm_workers')
+              .insert(seedData)
+              .select();
+
+            if (!insertError && inserted) {
+              const docSeeds: any[] = [];
+              inserted.forEach((item: any) => {
+                const match = initialWorkers.find((w: any) => w.name === item.full_name && w.passport === item.passport_number);
+                if (match && match.documents) {
+                  match.documents.forEach((d: any) => {
+                    docSeeds.push({
+                      worker_id: item.id,
+                      document_type: 'other',
+                      document_name: d.name,
+                      drive_file_id: d.fileId || null,
+                      drive_view_url: d.url || null,
+                      drive_download_url: d.downloadUrl || null,
+                      file_size: 1258291,
+                      uploaded_at: new Date().toISOString()
+                    });
+                  });
+                }
+              });
+
+              if (docSeeds.length > 0) {
+                await supabase.from('tm_documents').insert(docSeeds);
+              }
+              loadWorkersFromSupabase();
+            }
+          }
         } catch (e) {
-          console.error('Failed to load workers list from localStorage:', e);
+          console.error('Database load error:', e);
         }
-      }
+      };
+
+      loadWorkersFromSupabase();
 
       const tokensStr = localStorage.getItem('google_drive_tokens');
       if (tokensStr) {
@@ -220,28 +351,6 @@ export default function WorkersPage() {
       const params = new URLSearchParams(window.location.search);
       if (params.get('add') === 'true') {
         setShowAdd(true);
-      }
-
-      const viewWorkerParam = params.get('view');
-      if (viewWorkerParam) {
-        let listToSearch = initialWorkers;
-        if (saved) {
-          try {
-            listToSearch = JSON.parse(saved);
-          } catch (e) {
-            console.error('Failed to parse list for view param check:', e);
-          }
-        }
-        const found = listToSearch.find((w: any) =>
-          w.passport === viewWorkerParam ||
-          w.id === viewWorkerParam ||
-          w.name.toLowerCase() === viewWorkerParam.toLowerCase()
-        );
-        if (found) {
-          setActiveWorker(found);
-          setEditForm({ ...found });
-          setIsEditing(false);
-        }
       }
 
       setIsLoaded(true);
@@ -283,48 +392,86 @@ export default function WorkersPage() {
   }
 
   // Stateful add worker submit
-  const handleAddWorker = (e: React.FormEvent) => {
+  const handleAddWorker = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.passport) {
       alert('Full Name and Passport Number are required.');
       return;
     }
-    const newWorker = {
-      id: `TM-W-0${workersList.length + 1}`,
-      name: form.name,
-      passport: form.passport,
-      dob: form.dob || '1990-01-01',
-      phone: form.phone || 'N/A',
-      country: form.country || 'N/A',
-      status: form.status,
-      category: form.category,
-      passportExpiry: form.passportExpiry || '2030-01-01',
-      agency: form.agency || '',
-      position: form.position || '',
-      salary: form.salary || '',
-      fee: form.fee ? Number(form.fee) : 0,
-      departureDate: form.departureDate || '',
-      visaExpiry: form.visaExpiry || '',
-      documents: [{ name: 'passport_scan.pdf', size: '1.2 MB', date: new Date().toISOString().split('T')[0] }]
-    };
-    setWorkersList([newWorker, ...workersList]);
-    setShowAdd(false);
-    setForm({ 
-      name: '', 
-      passport: '', 
-      dob: '', 
-      phone: '', 
-      country: '', 
-      category: 'Middle East', 
-      status: 'registered', 
-      passportExpiry: '', 
-      agency: '',
-      position: '',
-      salary: '',
-      fee: '',
-      departureDate: '',
-      visaExpiry: ''
-    });
+
+    try {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+
+      const { data, error } = await supabase.from('tm_workers').insert({
+        full_name: form.name,
+        passport_number: form.passport,
+        date_of_birth: form.dob || null,
+        phone: form.phone || null,
+        nationality: form.country || null,
+        status: form.status,
+        passport_expiry_date: form.passportExpiry || null,
+        visa_expiry_date: form.visaExpiry || null,
+        profession: form.position || null,
+        notes: `${form.salary || ''}|${form.agency || ''}|${form.fee ? Number(form.fee) : 0}|${form.departureDate || ''}`
+      }).select();
+
+      if (error) throw error;
+      const created = data?.[0];
+      if (!created) throw new Error('Failed to create worker in DB');
+
+      // Create a default passport_scan doc in tm_documents as well
+      const defaultDoc = {
+        worker_id: created.id,
+        document_type: 'passport',
+        document_name: 'passport_scan.pdf',
+        file_size: 1258291, // 1.2 MB
+        uploaded_at: new Date().toISOString()
+      };
+      await supabase.from('tm_documents').insert(defaultDoc);
+
+      const newWorker = {
+        id: created.id,
+        name: form.name,
+        passport: form.passport,
+        dob: form.dob || '',
+        phone: form.phone || '',
+        country: form.country || '',
+        status: form.status,
+        category: form.category,
+        passportExpiry: form.passportExpiry || '',
+        agency: form.agency || '',
+        position: form.position || '',
+        salary: form.salary || '',
+        fee: form.fee ? Number(form.fee) : 0,
+        departureDate: form.departureDate || '',
+        visaExpiry: form.visaExpiry || '',
+        documents: [{ name: 'passport_scan.pdf', size: '1.2 MB', date: new Date().toISOString().split('T')[0] }]
+      };
+
+      setWorkersList([newWorker, ...workersList]);
+      setShowAdd(false);
+      setForm({ 
+        name: '', 
+        passport: '', 
+        dob: '', 
+        phone: '', 
+        country: '', 
+        category: 'Middle East', 
+        status: 'registered', 
+        passportExpiry: '', 
+        agency: '',
+        position: '',
+        salary: '',
+        fee: '',
+        departureDate: '',
+        visaExpiry: ''
+      });
+      alert('Worker successfully added.');
+    } catch (err: any) {
+      console.error('Error adding worker:', err);
+      alert(`Failed to add worker: ${err.message}`);
+    }
   };
 
   // Open Drawer and populate edit fields
@@ -335,36 +482,75 @@ export default function WorkersPage() {
   };
 
   // Save edited profile changes
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!editForm.name || !editForm.passport) {
       alert('Full Name and Passport Number are required.');
       return;
     }
-    const updatedList = workersList.map(w => {
-      if (w.id === activeWorker.id) {
-        const { documents, ...restFields } = editForm; // Exclude documents from editForm overwrite!
-        const updated = { ...w, ...restFields };
-        setActiveWorker(updated);
-        return updated;
-      }
-      return w;
-    });
-    setWorkersList(updatedList);
-    setIsEditing(false);
+
+    try {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+
+      const { error } = await supabase.from('tm_workers').update({
+        full_name: editForm.name,
+        passport_number: editForm.passport,
+        date_of_birth: editForm.dob || null,
+        phone: editForm.phone || null,
+        nationality: editForm.country || null,
+        status: editForm.status,
+        passport_expiry_date: editForm.passportExpiry || null,
+        visa_expiry_date: editForm.visaExpiry || null,
+        profession: editForm.position || null,
+        notes: `${editForm.salary || ''}|${editForm.agency || ''}|${editForm.fee || ''}|${editForm.departureDate || ''}`
+      }).eq('id', activeWorker.id);
+
+      if (error) throw error;
+
+      const updatedList = workersList.map(w => {
+        if (w.id === activeWorker.id) {
+          const { documents, ...restFields } = editForm;
+          const updated = { ...w, ...restFields };
+          setActiveWorker(updated);
+          return updated;
+        }
+        return w;
+      });
+      setWorkersList(updatedList);
+      setIsEditing(false);
+      alert('Worker profile updated.');
+    } catch (err: any) {
+      console.error('Error saving profile:', err);
+      alert(`Failed to save changes: ${err.message}`);
+    }
   };
 
   // Update recruitment progress step
-  const handleUpdateStage = (stageKey: string) => {
-    const updatedList = workersList.map(w => {
-      if (w.id === activeWorker.id) {
-        const updated = { ...w, status: stageKey };
-        setActiveWorker(updated);
-        setEditForm(updated); // Sync complete updated worker to editForm
-        return updated;
-      }
-      return w;
-    });
-    setWorkersList(updatedList);
+  const handleUpdateStage = async (stageKey: string) => {
+    try {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+
+      const { error } = await supabase.from('tm_workers').update({
+        status: stageKey
+      }).eq('id', activeWorker.id);
+
+      if (error) throw error;
+
+      const updatedList = workersList.map(w => {
+        if (w.id === activeWorker.id) {
+          const updated = { ...w, status: stageKey };
+          setActiveWorker(updated);
+          setEditForm(updated);
+          return updated;
+        }
+        return w;
+      });
+      setWorkersList(updatedList);
+    } catch (err: any) {
+      console.error('Error updating stage:', err);
+      alert(`Failed to update status: ${err.message}`);
+    }
   };
 
   // Stateful Document Upload to Google Drive API with Service Account
@@ -414,6 +600,22 @@ export default function WorkersPage() {
           downloadUrl: data.downloadUrl || (data.fileId ? `https://drive.google.com/uc?export=download&id=${data.fileId}` : data.url),
         };
 
+        // SAVE DOCUMENT TO SUPABASE
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { error: dbError } = await supabase.from('tm_documents').insert({
+          worker_id: activeWorker.id,
+          document_type: 'other',
+          document_name: newDoc.name,
+          drive_file_id: newDoc.fileId || null,
+          drive_view_url: newDoc.url || null,
+          drive_download_url: newDoc.downloadUrl || null,
+          file_size: file.size,
+          uploaded_at: new Date().toISOString()
+        });
+
+        if (dbError) throw dbError;
+
         const updatedList = workersList.map(w => {
           if (w.id === activeWorker.id) {
             const updated = {
@@ -446,8 +648,11 @@ export default function WorkersPage() {
       return;
     }
 
-    if (docToDelete.fileId) {
-      try {
+    try {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+
+      if (docToDelete.fileId) {
         const response = await fetch('/api/delete', {
           method: 'POST',
           headers: {
@@ -462,17 +667,19 @@ export default function WorkersPage() {
         const data = await response.json();
         if (!response.ok || !data.success) {
           console.warn('Failed to delete file from Google Drive:', data.error);
-        } else if (data.newTokens) {
-          const updatedTokens = {
-            ...googleTokens,
-            ...data.newTokens
-          };
-          localStorage.setItem('google_drive_tokens', JSON.stringify(updatedTokens));
-          setGoogleTokens(updatedTokens);
         }
-      } catch (err) {
-        console.error('Error calling delete API:', err);
+
+        // Delete from Supabase
+        await supabase.from('tm_documents').delete().eq('drive_file_id', docToDelete.fileId);
+      } else {
+        // Delete mock document from Supabase by matching worker_id & name
+        await supabase.from('tm_documents').delete().match({
+          worker_id: activeWorker.id,
+          document_name: docToDelete.name
+        });
       }
+    } catch (err) {
+      console.error('Error deleting document:', err);
     }
 
     const updatedList = workersList.map(w => {
@@ -494,10 +701,22 @@ export default function WorkersPage() {
   };
 
   // Deletion operation
-  const handleDeleteWorker = (id: string) => {
+  const handleDeleteWorker = async (id: string) => {
     if (confirm(`Are you absolutely sure you want to delete worker ${activeWorker?.name || ''} from the directory?`)) {
-      setWorkersList(workersList.filter(w => w.id !== id));
-      setActiveWorker(null);
+      try {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+
+        const { error } = await supabase.from('tm_workers').delete().eq('id', id);
+        if (error) throw error;
+
+        setWorkersList(workersList.filter(w => w.id !== id));
+        setActiveWorker(null);
+        alert('Worker deleted successfully.');
+      } catch (err: any) {
+        console.error('Error deleting worker:', err);
+        alert(`Failed to delete worker: ${err.message}`);
+      }
     }
   };
 
