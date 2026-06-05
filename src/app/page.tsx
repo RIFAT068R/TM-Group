@@ -42,27 +42,17 @@ export default function LandingPage() {
         backgroundColor: 'rgba(255, 255, 255, 0.8)',
         backdropFilter: 'blur(12px)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '4px',
-            border: '2px solid #222121',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 900,
-            fontSize: '0.85rem',
-            letterSpacing: '-0.05em',
-            color: '#222121',
-          }}>TM</div>
-          <span style={{
-            fontWeight: 800,
-            fontSize: '1rem',
-            letterSpacing: '-0.03em',
-            textTransform: 'uppercase',
-            color: '#222121'
-          }}>BUSINESS HUB</span>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <img 
+            src="/logo/Logo 1.png" 
+            alt="TM Business Hub" 
+            style={{ 
+              height: '44px', 
+              width: 'auto', 
+              objectFit: 'contain',
+              display: 'block'
+            }} 
+          />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
