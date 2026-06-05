@@ -130,6 +130,19 @@ const initialWorkers = [
   },
 ];
 
+const getCategoryFromCountry = (country: string) => {
+  const middleEast = ['Saudi Arabia', 'UAE', 'Qatar', 'Kuwait', 'Oman', 'Bahrain'];
+  const southeastAsia = ['Malaysia', 'Singapore', 'Brunei', 'Thailand'];
+  const eastAsia = ['South Korea', 'Japan', 'Hong Kong'];
+  const europe = ['Romania', 'Poland', 'Germany', 'Italy'];
+  
+  if (middleEast.includes(country)) return 'Middle East';
+  if (southeastAsia.includes(country)) return 'Southeast Asia';
+  if (eastAsia.includes(country)) return 'East Asia';
+  if (europe.includes(country)) return 'Europe';
+  return 'Middle East';
+};
+
 const statusColors: Record<string, { label: string; cls: string; color: string }> = {
   registered:    { label: 'Registered',   cls: 'badge-info',    color: '#06B6D4' },
   processing:    { label: 'Processing',   cls: 'badge-warning', color: '#F59E0B' },
@@ -138,6 +151,9 @@ const statusColors: Record<string, { label: string; cls: string; color: string }
   departed:      { label: 'Departed',     cls: 'badge-muted',   color: '#8E8D8C' },
   working:       { label: 'Working',      cls: 'badge-success', color: '#10B981' },
   returned:      { label: 'Returned',     cls: 'badge-muted',   color: '#8E8D8C' },
+  available:     { label: 'Registered',   cls: 'badge-info',    color: '#06B6D4' },
+  deployed:      { label: 'Working',      cls: 'badge-success', color: '#10B981' },
+  blacklisted:   { label: 'Blacklisted',  cls: 'badge-danger',  color: '#EF4444' },
 }
 
 const recruitmentStages = [
@@ -239,17 +255,32 @@ export default function WorkersPage() {
                     }))
                 : [];
 
+              let status = w.status || 'registered';
               let salary = '';
               let agency = '';
               let fee = '';
               let departureDate = '';
               if (w.notes) {
                 const parts = w.notes.split('|');
-                salary = parts[0] || '';
-                agency = parts[1] || '';
-                fee = parts[2] || '';
-                departureDate = parts[3] || '';
+                if (parts.length >= 5) {
+                  status = parts[0] || status;
+                  salary = parts[1] || '';
+                  agency = parts[2] || '';
+                  fee = parts[3] || '';
+                  departureDate = parts[4] || '';
+                } else {
+                  salary = parts[0] || '';
+                  agency = parts[1] || '';
+                  fee = parts[2] || '';
+                  departureDate = parts[3] || '';
+                }
               }
+
+              if (status === 'available') status = 'registered';
+              else if (status === 'deployed') status = 'working';
+
+              const country = w.nationality === 'Bangladeshi' || !w.nationality ? 'Not Assigned' : w.nationality;
+              const category = getCategoryFromCountry(country);
 
               return {
                 id: w.id,
@@ -257,8 +288,9 @@ export default function WorkersPage() {
                 passport: w.passport_number || '',
                 dob: w.date_of_birth || '',
                 phone: w.phone || '',
-                country: w.nationality || '',
-                status: w.status || 'registered',
+                country,
+                category,
+                status: status || 'registered',
                 passportExpiry: w.passport_expiry_date || '',
                 visaExpiry: w.visa_expiry_date || '',
                 position: w.profession || '',
@@ -288,18 +320,28 @@ export default function WorkersPage() {
             }
           } else {
             // Seed initialWorkers if table is empty
-            const seedData = initialWorkers.map((w: any) => ({
-              full_name: w.name,
-              passport_number: w.passport,
-              date_of_birth: w.dob || null,
-              phone: w.phone || null,
-              nationality: w.country || null,
-              status: w.status,
-              passport_expiry_date: w.passportExpiry || null,
-              visa_expiry_date: w.visaExpiry || null,
-              profession: w.position || null,
-              notes: `${w.salary || ''}|${w.agency || ''}|${w.fee || ''}|${w.departureDate || ''}`
-            }));
+            const seedData = initialWorkers.map((w: any) => {
+              let dbStatus = 'available';
+              if (w.status === 'working' || w.status === 'departed' || w.status === 'visa_approved') {
+                dbStatus = 'deployed';
+              } else if (w.status === 'processing') {
+                dbStatus = 'processing';
+              } else if (w.status === 'returned') {
+                dbStatus = 'returned';
+              }
+              return {
+                full_name: w.name,
+                passport_number: w.passport,
+                date_of_birth: w.dob || null,
+                phone: w.phone || null,
+                nationality: w.country || null,
+                status: dbStatus,
+                passport_expiry_date: w.passportExpiry || null,
+                visa_expiry_date: w.visaExpiry || null,
+                profession: w.position || null,
+                notes: `${w.status}|${w.salary || ''}|${w.agency || ''}|${w.fee || ''}|${w.departureDate || ''}`
+              };
+            });
 
             const { data: inserted, error: insertError } = await supabase
               .from('tm_workers')
@@ -387,6 +429,7 @@ export default function WorkersPage() {
   )
 
   const isExpiringSoon = (d: string) => {
+    if (!d) return false;
     const days = (new Date(d).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
     return days < 90
   }
@@ -403,17 +446,26 @@ export default function WorkersPage() {
       const { createClient } = await import('@/lib/supabase/client');
       const supabase = createClient();
 
+      let dbStatus = 'available';
+      if (form.status === 'working' || form.status === 'departed' || form.status === 'visa_approved') {
+        dbStatus = 'deployed';
+      } else if (form.status === 'processing') {
+        dbStatus = 'processing';
+      } else if (form.status === 'returned') {
+        dbStatus = 'returned';
+      }
+
       const { data, error } = await supabase.from('tm_workers').insert({
         full_name: form.name,
         passport_number: form.passport,
         date_of_birth: form.dob || null,
         phone: form.phone || null,
         nationality: form.country || null,
-        status: form.status,
+        status: dbStatus,
         passport_expiry_date: form.passportExpiry || null,
         visa_expiry_date: form.visaExpiry || null,
         profession: form.position || null,
-        notes: `${form.salary || ''}|${form.agency || ''}|${form.fee ? Number(form.fee) : 0}|${form.departureDate || ''}`
+        notes: `${form.status}|${form.salary || ''}|${form.agency || ''}|${form.fee ? Number(form.fee) : 0}|${form.departureDate || ''}`
       }).select();
 
       if (error) throw error;
@@ -430,15 +482,18 @@ export default function WorkersPage() {
       };
       await supabase.from('tm_documents').insert(defaultDoc);
 
+      const country = form.country || 'Not Assigned';
+      const category = getCategoryFromCountry(country);
+
       const newWorker = {
         id: created.id,
         name: form.name,
         passport: form.passport,
         dob: form.dob || '',
         phone: form.phone || '',
-        country: form.country || '',
+        country,
+        category,
         status: form.status,
-        category: form.category,
         passportExpiry: form.passportExpiry || '',
         agency: form.agency || '',
         position: form.position || '',
@@ -492,25 +547,37 @@ export default function WorkersPage() {
       const { createClient } = await import('@/lib/supabase/client');
       const supabase = createClient();
 
+      let dbStatus = 'available';
+      if (editForm.status === 'working' || editForm.status === 'departed' || editForm.status === 'visa_approved') {
+        dbStatus = 'deployed';
+      } else if (editForm.status === 'processing') {
+        dbStatus = 'processing';
+      } else if (editForm.status === 'returned') {
+        dbStatus = 'returned';
+      }
+
       const { error } = await supabase.from('tm_workers').update({
         full_name: editForm.name,
         passport_number: editForm.passport,
         date_of_birth: editForm.dob || null,
         phone: editForm.phone || null,
         nationality: editForm.country || null,
-        status: editForm.status,
+        status: dbStatus,
         passport_expiry_date: editForm.passportExpiry || null,
         visa_expiry_date: editForm.visaExpiry || null,
         profession: editForm.position || null,
-        notes: `${editForm.salary || ''}|${editForm.agency || ''}|${editForm.fee || ''}|${editForm.departureDate || ''}`
+        notes: `${editForm.status}|${editForm.salary || ''}|${editForm.agency || ''}|${editForm.fee || ''}|${editForm.departureDate || ''}`
       }).eq('id', activeWorker.id);
 
       if (error) throw error;
 
+      const country = editForm.country || 'Not Assigned';
+      const category = getCategoryFromCountry(country);
+
       const updatedList = workersList.map(w => {
         if (w.id === activeWorker.id) {
           const { documents, ...restFields } = editForm;
-          const updated = { ...w, ...restFields };
+          const updated = { ...w, ...restFields, country, category };
           setActiveWorker(updated);
           return updated;
         }
@@ -531,8 +598,18 @@ export default function WorkersPage() {
       const { createClient } = await import('@/lib/supabase/client');
       const supabase = createClient();
 
+      let dbStatus = 'available';
+      if (stageKey === 'working' || stageKey === 'departed' || stageKey === 'visa_approved') {
+        dbStatus = 'deployed';
+      } else if (stageKey === 'processing') {
+        dbStatus = 'processing';
+      } else if (stageKey === 'returned') {
+        dbStatus = 'returned';
+      }
+
       const { error } = await supabase.from('tm_workers').update({
-        status: stageKey
+        status: dbStatus,
+        notes: `${stageKey}|${activeWorker.salary || ''}|${activeWorker.agency || ''}|${activeWorker.fee || ''}|${activeWorker.departureDate || ''}`
       }).eq('id', activeWorker.id);
 
       if (error) throw error;
@@ -822,7 +899,7 @@ export default function WorkersPage() {
           <tbody>
             {filtered.map(w => (
               <tr key={w.id}>
-                <td><span className="num" style={{ color: '#A78BFA', fontWeight: 600, fontSize: '0.8rem' }}>{w.id}</span></td>
+                <td><span className="num" style={{ color: '#A78BFA', fontWeight: 600, fontSize: '0.8rem' }}>{w.id.includes('-') && w.id.length > 15 ? `TM-W-${w.id.slice(0, 8).toUpperCase()}` : w.id}</span></td>
                 <td>
                   <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9rem' }}>{w.name}</div>
                   <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>📞 {w.phone}</div>
@@ -909,7 +986,7 @@ export default function WorkersPage() {
                 </div>
                 <div>
                   <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--brand-accent)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    {activeWorker.id} Directory Record
+                    {activeWorker.id.includes('-') && activeWorker.id.length > 15 ? `TM-W-${activeWorker.id.slice(0, 8).toUpperCase()}` : activeWorker.id} Directory Record
                   </span>
                   <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '0.15rem' }}>
                     {activeWorker.name}
