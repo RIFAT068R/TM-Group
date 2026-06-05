@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: {
     template: '%s | TM Business Hub',
     default: 'TM Business Hub — Titas Enterprise & TM Overseas',
@@ -13,8 +14,21 @@ export const metadata: Metadata = {
   robots: 'noindex, nofollow', // Private internal tool
   manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.ico',
-    apple: '/icons/apple-touch-icon.png',
+    icon: '/logo/LOGO.png',
+    shortcut: '/logo/LOGO.png',
+    apple: '/logo/LOGO.png',
+  },
+  openGraph: {
+    title: 'TM Business Hub',
+    description: 'Unified AI-powered business intelligence platform for Titas Enterprise and TM Overseas.',
+    images: [
+      {
+        url: '/logo/Social media Preview.png',
+        width: 1200,
+        height: 630,
+        alt: 'TM Business Hub Social Preview',
+      },
+    ],
   },
 }
 
