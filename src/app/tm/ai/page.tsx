@@ -196,7 +196,7 @@ export default function TMAIPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.25rem', height: 'calc(100vh - 260px)' }}>
+      <div className="ai-grid">
         {/* Chat Window */}
         <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--surface)', border: '1px solid rgba(124,58,237,0.2)', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
           {/* Messages */}

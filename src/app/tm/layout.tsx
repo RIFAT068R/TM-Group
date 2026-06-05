@@ -138,7 +138,6 @@ export default function TMLayout({ children }: { children: React.ReactNode }) {
         className={`sidebar ${styles.sidebar} ${sidebarOpen ? 'open' : ''}`}
         role="navigation"
         aria-label="TM Overseas navigation"
-        aria-hidden={!sidebarOpen && typeof window !== 'undefined' && window.innerWidth <= 768 ? 'true' : undefined}
       >
         {/* Workspace switcher */}
         <div style={{ position: 'relative', width: '100%' }}>

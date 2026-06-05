@@ -130,7 +130,7 @@ export default function TMSettingsPage() {
       <div style={{ maxWidth:'700px', display:'flex', flexDirection:'column', gap:'1.5rem' }}>
         <div className="card">
           <h3 style={{ fontWeight:700, marginBottom:'1.25rem', fontSize:'1rem' }}>🏢 Company Information</h3>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(250px, 1fr))', gap:'1rem' }}>
             <div className="form-group" style={{ gridColumn:'1/-1' }}>
               <label className="form-label">Company Name</label>
               <input className="form-input" value={profile.companyName} disabled style={{ opacity: 0.7, cursor: 'not-allowed' }} />

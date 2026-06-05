@@ -159,7 +159,7 @@ export default function TMDashboard() {
       </div>
 
       {/* Charts Row */}
-      <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:'1rem', marginBottom:'1rem' }}>
+      <div className="charts-grid">
         <div className="chart-card">
           <div className="chart-title">Revenue &amp; Profit Trend</div>
           <div className="chart-subtitle">Last 6 months performance</div>

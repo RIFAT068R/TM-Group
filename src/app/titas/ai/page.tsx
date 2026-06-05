@@ -212,7 +212,7 @@ export default function TitasAIPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.25rem', height: 'calc(100vh - 260px)' }}>
+      <div className="ai-grid">
         {/* Chat Window */}
         <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
           {/* Messages */}
