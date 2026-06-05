@@ -139,7 +139,7 @@ export default function PlacementsPage() {
                 <td>
                   <div style={{ display:'flex', gap:'0.3rem' }}>
                     <button className="btn btn-ghost btn-sm" onClick={()=>setViewItem(p)}>View</button>
-                    <button className="btn btn-ghost btn-sm">Docs 📁</button>
+                    <Link href={`/tm/workers?view=${p.passport}`} className="btn btn-ghost btn-sm">Docs 📁</Link>
                   </div>
                 </td>
               </tr>
@@ -185,7 +185,7 @@ export default function PlacementsPage() {
             </div>
             <div className="modal-footer">
               <button className="btn btn-ghost" onClick={()=>setViewItem(null)}>Close</button>
-              {isAdmin && <button className="btn btn-tm">Upload Document 📁</button>}
+              {isAdmin && <Link href={`/tm/workers?view=${viewItem.passport}`} className="btn btn-tm">Upload Document 📁</Link>}
             </div>
           </div>
         </div>

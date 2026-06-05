@@ -91,6 +91,28 @@ export default function WorkersPage() {
         setShowAdd(true);
       }
 
+      const viewWorkerParam = params.get('view');
+      if (viewWorkerParam) {
+        let listToSearch = initialWorkers;
+        if (saved) {
+          try {
+            listToSearch = JSON.parse(saved);
+          } catch (e) {
+            console.error('Failed to parse list for view param check:', e);
+          }
+        }
+        const found = listToSearch.find((w: any) =>
+          w.passport === viewWorkerParam ||
+          w.id === viewWorkerParam ||
+          w.name.toLowerCase() === viewWorkerParam.toLowerCase()
+        );
+        if (found) {
+          setActiveWorker(found);
+          setEditForm({ ...found });
+          setIsEditing(false);
+        }
+      }
+
       setIsLoaded(true);
     }
   }, []);
