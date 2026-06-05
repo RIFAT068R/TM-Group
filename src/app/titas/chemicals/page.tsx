@@ -26,9 +26,10 @@ export default function ChemicalsPage() {
   const [category, setCategory] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ name:'', sku:'', category:'Acids', unit:'kg', minStock:'', dram:'', origin:'', purchasePrice:'', sellingPrice:'' })
-  const [isAdmin, setIsAdmin] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
   const [editingChemical, setEditingChemical] = useState<any | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const fetchChemicals = async () => {
     const { createClient } = await import('@/lib/supabase/client')
@@ -101,113 +102,118 @@ export default function ChemicalsPage() {
 
   const handleSaveChemical = async () => {
     if (!form.name.trim()) {
-      alert('Chemical Name is required.')
+      setSaveError('Chemical Name is required.')
       return
     }
 
-    const { isSupabaseConfigured } = await import('@/lib/supabase/client')
-    if (!isSupabaseConfigured()) {
-      if (editingChemical) {
-        setChemicalsList(prev => prev.map(c => c.id === editingChemical.id ? {
-          ...c,
-          name: form.name.trim(),
-          sku: form.sku.trim() || c.sku,
-          category: form.category,
-          unit: form.unit,
-          minStock: Number(form.minStock) || 0,
-          dram: form.dram.trim() || '—',
-          origin: form.origin.trim() || '—',
-          purchasePrice: Number(form.purchasePrice) || 0,
-          sellingPrice: Number(form.sellingPrice) || 0
-        } : c))
-      } else {
-        const newId = chemicalsList.length + 1
-        const newSku = form.sku.trim() || `TE-CHEM-${String(newId).padStart(3, '0')}`
-        const newChem = {
-          id: newId,
-          name: form.name.trim(),
-          sku: newSku,
-          category: form.category,
-          unit: form.unit,
-          dram: form.dram.trim() || '—',
-          origin: form.origin.trim() || '—',
-          stock: 0,
-          minStock: Number(form.minStock) || 0,
-          purchasePrice: Number(form.purchasePrice) || 0,
-          sellingPrice: Number(form.sellingPrice) || 0,
-          status: 'out_of_stock' as const
+    setSaveError(null)
+    setIsSaving(true)
+
+    try {
+      const { isSupabaseConfigured } = await import('@/lib/supabase/client')
+      if (!isSupabaseConfigured()) {
+        // Offline / no Supabase — update local state directly
+        if (editingChemical) {
+          setChemicalsList(prev => prev.map(c => c.id === editingChemical.id ? {
+            ...c,
+            name: form.name.trim(),
+            sku: form.sku.trim() || c.sku,
+            category: form.category,
+            unit: form.unit,
+            minStock: Number(form.minStock) || 0,
+            dram: form.dram.trim() || '—',
+            origin: form.origin.trim() || '—',
+            purchasePrice: Number(form.purchasePrice) || 0,
+            sellingPrice: Number(form.sellingPrice) || 0
+          } : c))
+        } else {
+          const newId = Date.now()
+          const newSku = form.sku.trim() || `TE-CHEM-${String(chemicalsList.length + 1).padStart(3, '0')}`
+          setChemicalsList(prev => [...prev, {
+            id: newId,
+            name: form.name.trim(),
+            sku: newSku,
+            category: form.category,
+            unit: form.unit,
+            dram: form.dram.trim() || '—',
+            origin: form.origin.trim() || '—',
+            stock: 0,
+            minStock: Number(form.minStock) || 0,
+            purchasePrice: Number(form.purchasePrice) || 0,
+            sellingPrice: Number(form.sellingPrice) || 0,
+            status: 'out_of_stock' as const
+          }])
         }
-        setChemicalsList([...chemicalsList, newChem])
+        setShowModal(false)
+        setEditingChemical(null)
+        setForm({ name: '', sku: '', category: 'Acids', unit: 'kg', minStock: '', dram: '', origin: '', purchasePrice: '', sellingPrice: '' })
+        return
       }
+
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+
+      // Resolve category ID
+      let categoryId: string | null = null
+      const { data: catData } = await supabase
+        .from('titas_categories')
+        .select('id')
+        .eq('name', form.category)
+        .limit(1)
+
+      if (catData && catData.length > 0) {
+        categoryId = catData[0].id
+      } else {
+        const { data: newCat } = await supabase
+          .from('titas_categories')
+          .insert({ name: form.category })
+          .select('id')
+          .single()
+        if (newCat) categoryId = newCat.id
+      }
+
+      const dbData: Record<string, any> = {
+        name: form.name.trim(),
+        unit: form.unit,
+        min_stock_level: Number(form.minStock) || 0,
+        purchase_price: Number(form.purchasePrice) || 0,
+        selling_price: Number(form.sellingPrice) || 0,
+        status: 'active'
+      }
+
+      // Only add optional fields if they have values
+      if (form.sku.trim()) dbData.cas_number = form.sku.trim()
+      if (categoryId) dbData.category_id = categoryId
+      if (form.dram.trim()) dbData.dram = form.dram.trim()
+      if (form.origin.trim()) dbData.origin_country = form.origin.trim()
+
+      if (editingChemical) {
+        const { error } = await supabase
+          .from('titas_chemicals')
+          .update(dbData)
+          .eq('id', editingChemical.id)
+
+        if (error) throw new Error('Update failed: ' + error.message)
+      } else {
+        const { error } = await supabase
+          .from('titas_chemicals')
+          .insert({ ...dbData, current_stock: 0 })
+
+        if (error) throw new Error('Insert failed: ' + error.message)
+      }
+
+      // Immediately refresh the list from Supabase
+      await fetchChemicals()
+
       setShowModal(false)
       setEditingChemical(null)
       setForm({ name: '', sku: '', category: 'Acids', unit: 'kg', minStock: '', dram: '', origin: '', purchasePrice: '', sellingPrice: '' })
-      return
+    } catch (err: any) {
+      console.error('handleSaveChemical error:', err)
+      setSaveError(err.message || 'Something went wrong. Please try again.')
+    } finally {
+      setIsSaving(false)
     }
-
-    const { createClient } = await import('@/lib/supabase/client')
-    const supabase = createClient()
-
-    let categoryId = null
-    const { data: catData } = await supabase
-      .from('titas_categories')
-      .select('id')
-      .eq('name', form.category)
-      .limit(1)
-
-    if (catData && catData.length > 0) {
-      categoryId = catData[0].id
-    } else {
-      const { data: newCat, error: catErr } = await supabase
-        .from('titas_categories')
-        .insert({ name: form.category })
-        .select('id')
-        .single()
-      if (!catErr && newCat) {
-        categoryId = newCat.id
-      }
-    }
-
-    const dbData = {
-      name: form.name.trim(),
-      cas_number: form.sku.trim() || null,
-      category_id: categoryId,
-      unit: form.unit,
-      min_stock_level: Number(form.minStock) || 0,
-      dram: form.dram.trim() || null,
-      origin_country: form.origin.trim() || null,
-      purchase_price: Number(form.purchasePrice) || 0,
-      selling_price: Number(form.sellingPrice) || 0,
-      status: 'active'
-    }
-
-    if (editingChemical) {
-      const { error } = await supabase
-        .from('titas_chemicals')
-        .update(dbData)
-        .eq('id', editingChemical.id)
-
-      if (error) {
-        alert('Failed to update chemical in Supabase: ' + error.message)
-        return
-      }
-    } else {
-      const { error } = await supabase
-        .from('titas_chemicals')
-        .insert({
-          ...dbData,
-          current_stock: 0
-        })
-
-      if (error) {
-        alert('Failed to add chemical to Supabase: ' + error.message)
-        return
-      }
-    }
-
-    setShowModal(false)
-    setEditingChemical(null)
-    setForm({ name: '', sku: '', category: 'Acids', unit: 'kg', minStock: '', dram: '', origin: '', purchasePrice: '', sellingPrice: '' })
   }
 
   useEffect(() => {
@@ -216,45 +222,34 @@ export default function ChemicalsPage() {
     const setupRealtime = async () => {
       const { isSupabaseConfigured, createClient } = await import('@/lib/supabase/client')
       
+      // Hydrate from localStorage immediately so page shows data fast
       if (typeof window !== 'undefined') {
         const saved = localStorage.getItem('titas_chemicals_list')
         if (saved) {
-          try { setChemicalsList(JSON.parse(saved)); } catch (e) {}
+          try {
+            const parsed = JSON.parse(saved)
+            if (parsed.length > 0) setChemicalsList(parsed)
+          } catch (e) {}
         }
         setIsLoaded(true)
       }
 
       if (isSupabaseConfigured()) {
         const supabase = createClient()
-        fetchChemicals()
+        await fetchChemicals()
 
         channel = supabase
           .channel('titas-chemicals-changes')
           .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'titas_chemicals' },
-            () => {
-              fetchChemicals()
-            }
+            () => { fetchChemicals() }
           )
           .subscribe()
       }
     }
 
     setupRealtime()
-
-    const checkRole = async () => {
-      const { createClient } = await import('@/lib/supabase/client')
-      const supabase = createClient()
-      const { data } = await supabase.auth.getUser()
-      if (data?.user) {
-        const role = (data.user.user_metadata?.role || data.user.app_metadata?.role || '').toLowerCase()
-        setIsAdmin(role === 'admin')
-      } else {
-        setIsAdmin(false)
-      }
-    }
-    checkRole()
 
     return () => {
       if (channel) {
@@ -266,8 +261,7 @@ export default function ChemicalsPage() {
   }, [])
 
   useEffect(() => {
-    const { isSupabaseConfigured } = require('@/lib/supabase/client')
-    if (isLoaded && !isSupabaseConfigured() && typeof window !== 'undefined') {
+    if (isLoaded && typeof window !== 'undefined') {
       localStorage.setItem('titas_chemicals_list', JSON.stringify(chemicalsList))
     }
   }, [chemicalsList, isLoaded])
@@ -292,12 +286,10 @@ export default function ChemicalsPage() {
           <p className="page-subtitle">{chemicalsList.length} chemicals registered · {chemicalsList.filter(c=>c.status==='low_stock').length} low stock alerts</p>
         </div>
         <div className="page-actions">
-          {isAdmin && (
-            <button className="btn btn-primary" onClick={handleAddClick}>
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-              Add Chemical
-            </button>
-          )}
+          <button className="btn btn-primary" onClick={handleAddClick}>
+            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            Add Chemical
+          </button>
           <Link href="/titas/inventory" className="btn btn-ghost">Inventory →</Link>
         </div>
       </div>
@@ -432,14 +424,23 @@ export default function ChemicalsPage() {
                 </div>
               </div>
             </div>
-            <div className="modal-footer">
-              <button className="btn btn-ghost" onClick={() => { setShowModal(false); setEditingChemical(null); }}>Cancel</button>
-              <button
-                className="btn btn-primary"
-                onClick={handleSaveChemical}
-              >
-                {editingChemical ? 'Save Changes' : 'Add Chemical'}
-              </button>
+            <div className="modal-footer" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '0.5rem' }}>
+              {saveError && (
+                <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', padding: '0.625rem 0.875rem', fontSize: '0.82rem', color: '#EF4444', textAlign: 'center' }}>
+                  ⚠️ {saveError}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                <button className="btn btn-ghost" onClick={() => { setShowModal(false); setEditingChemical(null); setSaveError(null); }} disabled={isSaving}>Cancel</button>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleSaveChemical}
+                  disabled={isSaving}
+                  style={{ minWidth: '130px' }}
+                >
+                  {isSaving ? '⏳ Saving...' : editingChemical ? '✓ Save Changes' : '+ Add Chemical'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
