@@ -141,7 +141,7 @@ export default function TMDashboard() {
           <p className="page-subtitle">Manpower management overview · {new Date().toLocaleDateString('en-BD', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}</p>
         </div>
         <div className="page-actions">
-          <Link href="/tm/placements" className="btn btn-ghost">View Placements</Link>
+          <Link href="/tm/workers?viewMode=table" className="btn btn-ghost">View Placements</Link>
         </div>
       </div>
 
@@ -268,7 +268,7 @@ export default function TMDashboard() {
             <h3 style={{ fontSize:'0.95rem', fontWeight:700, marginBottom:'0.15rem' }}>Recent Placements</h3>
             <p style={{ fontSize:'0.78rem', color:'var(--text-muted)', margin:0 }}>Latest worker placements</p>
           </div>
-          <Link href="/tm/placements" className="btn btn-ghost btn-sm">View All →</Link>
+          <Link href="/tm/workers?viewMode=table" className="btn btn-ghost btn-sm">View All →</Link>
         </div>
         <div className="data-table-wrap">
           <table className="data-table">
@@ -295,7 +295,7 @@ export default function TMDashboard() {
                     </span>
                   </td>
                   <td style={{ fontSize:'0.8rem' }}>{w.date}</td>
-                  <td><Link href={`/tm/placements?id=${w.id}`} className="btn btn-ghost btn-sm">View</Link></td>
+                  <td><Link href={`/tm/workers?view=${encodeURIComponent(w.name)}`} className="btn btn-ghost btn-sm">View</Link></td>
                 </tr>
               ))}
             </tbody>

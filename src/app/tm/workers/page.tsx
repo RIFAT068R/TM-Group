@@ -6,12 +6,128 @@ import DatePicker from '@/components/DatePicker'
 
 // consolidated database of workers in react-state list
 const initialWorkers = [
-  { id: 'TM-W-001', name: 'Md. Rahim Uddin',   passport: 'AB1234567', dob: '1990-05-12', phone: '+880 1712-345678', country: 'Saudi Arabia', status: 'working',       category: 'Middle East', passportExpiry: '2027-03-15', documents: [{ name: 'passport_scan.pdf', size: '1.4 MB', date: '2026-01-10' }, { name: 'medical_report.pdf', size: '840 KB', date: '2026-02-14' }] },
-  { id: 'TM-W-002', name: 'Abdul Karim',        passport: 'BC2345678', dob: '1988-11-20', phone: '+880 1812-456789', country: 'UAE',          status: 'departed',      category: 'Middle East', passportExpiry: '2026-08-22', documents: [{ name: 'passport_scan.pdf', size: '1.3 MB', date: '2025-12-05' }] },
-  { id: 'TM-W-003', name: 'Fatema Begum',       passport: 'CD3456789', dob: '1995-02-08', phone: '+880 1911-567890', country: 'Qatar',        status: 'processing',    category: 'Middle East', passportExpiry: '2028-01-10', documents: [{ name: 'passport_scan.pdf', size: '1.5 MB', date: '2026-03-01' }] },
-  { id: 'TM-W-004', name: 'Md. Hasan Ali',      passport: 'DE4567890', dob: '1992-07-30', phone: '+880 1612-678901', country: 'Kuwait',       status: 'visa_approved', category: 'Middle East', passportExpiry: '2025-12-05', documents: [{ name: 'passport_scan.pdf', size: '1.2 MB', date: '2025-11-15' }, { name: 'visa_stamping.pdf', size: '920 KB', date: '2026-04-10' }] },
-  { id: 'TM-W-005', name: 'Sumaiya Khatun',     passport: 'EF5678901', dob: '1997-09-14', phone: '+880 1512-789012', country: 'Malaysia',     status: 'returned',      category: 'Southeast Asia', passportExpiry: '2026-06-18', documents: [{ name: 'passport_scan.pdf', size: '1.3 MB', date: '2026-02-18' }] },
-  { id: 'TM-W-006', name: 'Md. Kamal Hossain',  passport: 'FG6789012', dob: '1985-03-25', phone: '+880 1412-890123', country: 'Saudi Arabia', status: 'working',       category: 'Middle East', passportExpiry: '2027-09-30', documents: [{ name: 'passport_scan.pdf', size: '1.4 MB', date: '2025-10-05' }] },
+  { 
+    id: 'TM-W-001', 
+    name: 'Md. Rahim Uddin', 
+    passport: 'AB1234567', 
+    dob: '1990-05-12', 
+    phone: '+880 1712-345678', 
+    country: 'Saudi Arabia', 
+    status: 'working', 
+    category: 'Middle East', 
+    passportExpiry: '2027-03-15', 
+    agency: 'Al-Noor Recruitment',
+    position: 'Construction Worker',
+    salary: 'SAR 1,200/mo',
+    fee: 65000,
+    departureDate: '2024-05-10',
+    visaExpiry: '2026-05-09',
+    documents: [
+      { name: 'passport_scan.pdf', size: '1.4 MB', date: '2026-01-10' }, 
+      { name: 'medical_report.pdf', size: '840 KB', date: '2026-02-14' }
+    ] 
+  },
+  { 
+    id: 'TM-W-002', 
+    name: 'Abdul Karim', 
+    passport: 'BC2345678', 
+    dob: '1988-11-20', 
+    phone: '+880 1812-456789', 
+    country: 'UAE', 
+    status: 'departed', 
+    category: 'Middle East', 
+    passportExpiry: '2026-08-22', 
+    agency: 'Gulf Connect BD',
+    position: 'Driver',
+    salary: 'AED 1,500/mo',
+    fee: 55000,
+    departureDate: '2024-05-08',
+    visaExpiry: '2026-05-07',
+    documents: [
+      { name: 'passport_scan.pdf', size: '1.3 MB', date: '2025-12-05' }
+    ] 
+  },
+  { 
+    id: 'TM-W-003', 
+    name: 'Fatema Begum', 
+    passport: 'CD3456789', 
+    dob: '1995-02-08', 
+    phone: '+880 1911-567890', 
+    country: 'Qatar', 
+    status: 'processing', 
+    category: 'Middle East', 
+    passportExpiry: '2028-01-10', 
+    agency: 'Middle East HR',
+    position: 'Housemaid',
+    salary: 'QAR 900/mo',
+    fee: 48000,
+    departureDate: '',
+    visaExpiry: '',
+    documents: [
+      { name: 'passport_scan.pdf', size: '1.5 MB', date: '2026-03-01' }
+    ] 
+  },
+  { 
+    id: 'TM-W-004', 
+    name: 'Md. Hasan Ali', 
+    passport: 'DE4567890', 
+    dob: '1992-07-30', 
+    phone: '+880 1612-678901', 
+    country: 'Kuwait', 
+    status: 'visa_approved', 
+    category: 'Middle East', 
+    passportExpiry: '2025-12-05', 
+    agency: 'Kuwait Manpower Co.',
+    position: 'Technician',
+    salary: 'KWD 180/mo',
+    fee: 70000,
+    departureDate: '',
+    visaExpiry: '',
+    documents: [
+      { name: 'passport_scan.pdf', size: '1.2 MB', date: '2025-11-15' }, 
+      { name: 'visa_stamping.pdf', size: '920 KB', date: '2026-04-10' }
+    ] 
+  },
+  { 
+    id: 'TM-W-005', 
+    name: 'Sumaiya Khatun', 
+    passport: 'EF5678901', 
+    dob: '1997-09-14', 
+    phone: '+880 1512-789012', 
+    country: 'Malaysia', 
+    status: 'returned', 
+    category: 'Southeast Asia', 
+    passportExpiry: '2026-06-18', 
+    agency: 'SEA Recruitment',
+    position: 'Factory Worker',
+    salary: 'MYR 1,300/mo',
+    fee: 42000,
+    departureDate: '2024-01-20',
+    visaExpiry: '',
+    documents: [
+      { name: 'passport_scan.pdf', size: '1.3 MB', date: '2026-02-18' }
+    ] 
+  },
+  { 
+    id: 'TM-W-006', 
+    name: 'Md. Kamal Hossain', 
+    passport: 'FG6789012', 
+    dob: '1985-03-25', 
+    phone: '+880 1412-890123', 
+    country: 'Saudi Arabia', 
+    status: 'working', 
+    category: 'Middle East', 
+    passportExpiry: '2027-09-30', 
+    agency: 'Al-Noor Recruitment',
+    position: 'Electrician',
+    salary: 'SAR 1,500/mo',
+    fee: 68000,
+    departureDate: '2024-02-15',
+    visaExpiry: '2026-02-14',
+    documents: [
+      { name: 'passport_scan.pdf', size: '1.4 MB', date: '2025-10-05' }
+    ] 
+  },
 ];
 
 const statusColors: Record<string, { label: string; cls: string; color: string }> = {
@@ -39,7 +155,23 @@ export default function WorkersPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [showAdd, setShowAdd] = useState(false)
-  const [form, setForm] = useState({ name: '', passport: '', dob: '', phone: '', country: '', category: 'Middle East', status: 'registered', passportExpiry: '', agency: '' })
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table')
+  const [form, setForm] = useState({ 
+    name: '', 
+    passport: '', 
+    dob: '', 
+    phone: '', 
+    country: '', 
+    category: 'Middle East', 
+    status: 'registered', 
+    passportExpiry: '', 
+    agency: '',
+    position: '',
+    salary: '',
+    fee: '',
+    departureDate: '',
+    visaExpiry: ''
+  })
   const [isAdmin, setIsAdmin] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
 
@@ -169,11 +301,31 @@ export default function WorkersPage() {
       category: form.category,
       passportExpiry: form.passportExpiry || '2030-01-01',
       agency: form.agency || '',
+      position: form.position || '',
+      salary: form.salary || '',
+      fee: form.fee ? Number(form.fee) : 0,
+      departureDate: form.departureDate || '',
+      visaExpiry: form.visaExpiry || '',
       documents: [{ name: 'passport_scan.pdf', size: '1.2 MB', date: new Date().toISOString().split('T')[0] }]
     };
     setWorkersList([newWorker, ...workersList]);
     setShowAdd(false);
-    setForm({ name: '', passport: '', dob: '', phone: '', country: '', category: 'Middle East', status: 'registered', passportExpiry: '', agency: '' });
+    setForm({ 
+      name: '', 
+      passport: '', 
+      dob: '', 
+      phone: '', 
+      country: '', 
+      category: 'Middle East', 
+      status: 'registered', 
+      passportExpiry: '', 
+      agency: '',
+      position: '',
+      salary: '',
+      fee: '',
+      departureDate: '',
+      visaExpiry: ''
+    });
   };
 
   // Open Drawer and populate edit fields
@@ -360,7 +512,7 @@ export default function WorkersPage() {
       <nav className="breadcrumb mb-4">
         <Link href="/tm/dashboard">Dashboard</Link>
         <span className="breadcrumb-sep">›</span>
-        <span className="breadcrumb-current">Workers</span>
+        <span className="breadcrumb-current">Workers & Placements</span>
       </nav>
 
       {/* Google Drive OAuth Connection Banner */}
@@ -433,7 +585,7 @@ export default function WorkersPage() {
 
       <div className="page-header">
         <div>
-          <h1 className="page-title">Worker Directory</h1>
+          <h1 className="page-title">Workers & Placements</h1>
           <p className="page-subtitle">
             {workersList.length} workers registered · {workersList.filter(w => w.status === 'working').length} currently working abroad
           </p>
@@ -447,7 +599,6 @@ export default function WorkersPage() {
           )}
         </div>
       </div>
-
       {/* Filter Bar */}
       <div className="filter-bar">
         <div className="search-wrap">
@@ -463,73 +614,156 @@ export default function WorkersPage() {
             ...Object.entries(statusColors).map(([k, v]) => ({ value: k, label: v.label }))
           ]}
         />
-        <div style={{ marginLeft: 'auto', fontSize: '0.82rem', color: 'var(--text-muted)' }}>{filtered.length} workers</div>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          {/* Toggle View Mode Buttons */}
+          <div style={{ display: 'flex', gap: '0.25rem', background: 'var(--surface2)', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              className={`btn btn-sm ${viewMode === 'table' ? 'btn-tm' : 'btn-ghost'}`}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.35rem 0.75rem', borderRadius: '6px' }}
+            >
+              📋 Table
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('cards')}
+              className={`btn btn-sm ${viewMode === 'cards' ? 'btn-tm' : 'btn-ghost'}`}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.35rem 0.75rem', borderRadius: '6px' }}
+            >
+              🎴 Cards
+            </button>
+          </div>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{filtered.length} workers</div>
+        </div>
       </div>
 
-      {/* Worker Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
-        {filtered.map(w => (
-          <div 
-            key={w.id} 
-            className="card glass-hover" 
-            style={{ borderColor: 'rgba(124,58,237,0.12)', cursor: 'pointer' }}
-            onClick={() => handleViewProfile(w)}
-          >
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
-                <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg, var(--brand-accent), #4CD1D6)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#fff', fontSize: '1.1rem', flexShrink: 0 }}>
-                  {w.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>{w.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{w.passport}</div>
-                </div>
-              </div>
-              <span className={`badge ${statusColors[w.status]?.cls || 'badge-muted'}`}>{statusColors[w.status]?.label || w.status}</span>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 1rem', fontSize: '0.8rem', marginBottom: '1rem' }}>
-              <div><span style={{ color: 'var(--text-muted)' }}>Country:</span> <strong style={{ color: 'var(--text-primary)' }}>{w.country}</strong></div>
-              <div><span style={{ color: 'var(--text-muted)' }}>Category:</span> <strong style={{ color: 'var(--text-primary)' }}>{w.category}</strong></div>
-              <div><span style={{ color: 'var(--text-muted)' }}>Phone:</span> <span style={{ color: 'var(--text-secondary)' }}>{w.phone}</span></div>
-              <div>
-                <span style={{ color: 'var(--text-muted)' }}>Passport Exp:</span>{' '}
-                <strong style={{ color: isExpiringSoon(w.passportExpiry) ? '#EF4444' : 'var(--text-primary)' }}>
-                  {w.passportExpiry} {isExpiringSoon(w.passportExpiry) ? '⚠️' : ''}
-                </strong>
-              </div>
-              <div style={{ gridColumn: '1 / -1', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '0.4rem', display: 'flex', gap: '0.25rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Agency:</span>{' '}
-                <strong style={{ color: 'var(--text-primary)' }}>{w.agency || 'Not Assigned'}</strong>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button 
-                className="btn btn-ghost btn-sm" 
-                style={{ flex: 1, justifyContent: 'center' }}
-                onClick={(e) => { e.stopPropagation(); handleViewProfile(w); }}
-              >
-                View Profile & Docs
-              </button>
-              {isAdmin && (
-                <button 
-                  className="btn btn-ghost btn-sm"
-                  onClick={(e) => { e.stopPropagation(); handleViewProfile(w); }}
-
-                >
-                  ✏️
-                </button>
+      {viewMode === 'table' ? (
+        /* 📋 TABLE VIEW: Scannable Master Table showing Demographics + Job Placement Contracts */
+        <div className="data-table-wrap">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Worker</th>
+                <th>Passport</th>
+                <th>Country</th>
+                <th>Agency</th>
+                <th>Position</th>
+                <th>Salary</th>
+                <th>Fee (৳)</th>
+                <th>Status</th>
+                <th>Visa Expiry</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(w => (
+                <tr key={w.id}>
+                  <td><span className="num" style={{ color: '#A78BFA', fontWeight: 600, fontSize: '0.8rem' }}>{w.id}</span></td>
+                  <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{w.name}</td>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem' }}>{w.passport}</td>
+                  <td>{w.country}</td>
+                  <td style={{ fontSize: '0.82rem' }}>{w.agency || '—'}</td>
+                  <td style={{ fontSize: '0.82rem' }}>{w.position || '—'}</td>
+                  <td className="num" style={{ fontSize: '0.82rem', color: '#10B981' }}>{w.salary || '—'}</td>
+                  <td className="num" style={{ fontWeight: 600 }}>{w.fee ? `৳${w.fee.toLocaleString()}` : '—'}</td>
+                  <td>
+                    <span className={`badge ${statusColors[w.status]?.cls || 'badge-muted'}`}>
+                      {statusColors[w.status]?.label || w.status}
+                    </span>
+                  </td>
+                  <td style={{ fontSize: '0.8rem', color: isExpiringSoon(w.visaExpiry) ? '#EF4444' : 'var(--text-muted)' }}>
+                    {w.visaExpiry || '—'} {isExpiringSoon(w.visaExpiry) ? '⚠️' : ''}
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.3rem' }}>
+                      <button className="btn btn-ghost btn-sm" onClick={() => handleViewProfile(w)}>View</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={11} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                    No workers match your search criteria.
+                  </td>
+                </tr>
               )}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        /* 🎴 CARD VIEW: Graphical Cards Grid */
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
+          {filtered.map(w => (
+            <div 
+              key={w.id} 
+              className="card glass-hover" 
+              style={{ borderColor: 'rgba(124,58,237,0.12)', cursor: 'pointer' }}
+              onClick={() => handleViewProfile(w)}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+                  <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg, var(--brand-accent), #4CD1D6)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#fff', fontSize: '1.1rem', flexShrink: 0 }}>
+                    {w.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>{w.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{w.passport}</div>
+                  </div>
+                </div>
+                <span className={`badge ${statusColors[w.status]?.cls || 'badge-muted'}`}>{statusColors[w.status]?.label || w.status}</span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 1rem', fontSize: '0.8rem', marginBottom: '1rem' }}>
+                <div><span style={{ color: 'var(--text-muted)' }}>Country:</span> <strong style={{ color: 'var(--text-primary)' }}>{w.country}</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Category:</span> <strong style={{ color: 'var(--text-primary)' }}>{w.category}</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Phone:</span> <span style={{ color: 'var(--text-secondary)' }}>{w.phone}</span></div>
+                <div>
+                  <span style={{ color: 'var(--text-muted)' }}>Passport Exp:</span>{' '}
+                  <strong style={{ color: isExpiringSoon(w.passportExpiry) ? '#EF4444' : 'var(--text-primary)' }}>
+                    {w.passportExpiry} {isExpiringSoon(w.passportExpiry) ? '⚠️' : ''}
+                  </strong>
+                </div>
+                {w.position && (
+                  <div style={{ gridColumn: '1 / -1', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '0.4rem' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Job Placement:</span>{' '}
+                    <strong style={{ color: 'var(--text-primary)' }}>{w.position} ({w.salary})</strong>
+                  </div>
+                )}
+                <div style={{ gridColumn: '1 / -1', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '0.4rem', display: 'flex', gap: '0.25rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Agency:</span>{' '}
+                  <strong style={{ color: 'var(--text-primary)' }}>{w.agency || 'Not Assigned'}</strong>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button 
+                  className="btn btn-ghost btn-sm" 
+                  style={{ flex: 1, justifyContent: 'center' }}
+                  onClick={(e) => { e.stopPropagation(); handleViewProfile(w); }}
+                >
+                  View Profile & Docs
+                </button>
+                {isAdmin && (
+                  <button 
+                    className="btn btn-ghost btn-sm"
+                    onClick={(e) => { e.stopPropagation(); handleViewProfile(w); }}
+                  >
+                    ✏️
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-        {filtered.length === 0 && (
-          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-            No workers match your search criteria.
-          </div>
-        )}
-      </div>
+          ))}
+          {filtered.length === 0 && (
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+              No workers match your search criteria.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Right side Detail Drawer overlay */}
       {activeWorker && (
@@ -659,6 +893,37 @@ export default function WorkersPage() {
                     <div style={{ gridColumn: '1 / -1', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '0.5rem' }}>
                       <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>Placement Agency</span>
                       <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{activeWorker.agency || 'Not Assigned'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2.5 Job Placement & Contract Details */}
+                <div>
+                  <h4 style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.75rem', letterSpacing: '0.03em' }}>
+                    Job Placement & Contract Details
+                  </h4>
+                  <div style={{ background: 'var(--surface2)', borderRadius: '10px', padding: '1rem', border: '1px solid var(--border)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem 1.25rem', fontSize: '0.85rem' }}>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>Position / Job Role</span>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{activeWorker.position || '—'}</div>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>Monthly Salary</span>
+                      <div style={{ fontWeight: 600, color: '#10B981' }}>{activeWorker.salary || '—'}</div>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>Placement Fee</span>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{activeWorker.fee ? `৳${activeWorker.fee.toLocaleString()}` : '—'}</div>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>Departure Date</span>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{activeWorker.departureDate || '—'}</div>
+                    </div>
+                    <div style={{ gridColumn: '1 / -1', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '0.5rem' }}>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>Visa Expiry Date</span>
+                      <div style={{ fontWeight: 600, color: isExpiringSoon(activeWorker.visaExpiry) ? '#EF4444' : 'var(--text-primary)' }}>
+                        {activeWorker.visaExpiry || '—'} {isExpiringSoon(activeWorker.visaExpiry) ? '⚠️ Expiring Soon' : ''}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -845,6 +1110,26 @@ export default function WorkersPage() {
                     ]}
                   />
                 </div>
+                <div className="form-group">
+                  <label className="form-label">Position / Job Role</label>
+                  <input className="form-input" placeholder="e.g. Construction Worker" value={editForm.position || ''} onChange={e => setEditForm({ ...editForm, position: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Monthly Salary</label>
+                  <input className="form-input" placeholder="e.g. SAR 1,200/mo" value={editForm.salary || ''} onChange={e => setEditForm({ ...editForm, salary: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Placement Fee (৳)</label>
+                  <input className="form-input" type="number" placeholder="e.g. 65000" value={editForm.fee || ''} onChange={e => setEditForm({ ...editForm, fee: e.target.value ? Number(e.target.value) : '' })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Departure Date</label>
+                  <DatePicker value={editForm.departureDate || ''} onChange={v => setEditForm({ ...editForm, departureDate: v })} placeholder="Departure date" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Visa Expiry Date</label>
+                  <DatePicker value={editForm.visaExpiry || ''} onChange={v => setEditForm({ ...editForm, visaExpiry: v })} placeholder="Visa expiry date" />
+                </div>
 
                 <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '1rem', display: 'flex', gap: '0.5rem' }}>
                   <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setIsEditing(false)}>Cancel</button>
@@ -920,6 +1205,26 @@ export default function WorkersPage() {
                       ...['Al-Noor Recruitment','Gulf Connect BD','Middle East HR','Kuwait Manpower Co.','SEA Recruitment','EuroLink Manpower'].map(a => ({ value: a, label: a }))
                     ]}
                   />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Position / Job Role</label>
+                  <input className="form-input" placeholder="e.g. Construction Worker" value={form.position} onChange={e => setForm({ ...form, position: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Monthly Salary</label>
+                  <input className="form-input" placeholder="e.g. SAR 1,200/mo" value={form.salary} onChange={e => setForm({ ...form, salary: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Placement Fee (৳)</label>
+                  <input className="form-input" type="number" placeholder="e.g. 65000" value={form.fee} onChange={e => setForm({ ...form, fee: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Departure Date</label>
+                  <DatePicker value={form.departureDate} onChange={v => setForm({ ...form, departureDate: v })} placeholder="Departure date" />
+                </div>
+                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                  <label className="form-label">Visa Expiry Date</label>
+                  <DatePicker value={form.visaExpiry} onChange={v => setForm({ ...form, visaExpiry: v })} placeholder="Visa expiry date" />
                 </div>
               </div>
               <div style={{ background: 'rgba(76,209,214,0.02)', border: '1px dashed var(--brand-accent)', borderRadius: '10px', padding: '0.875rem', marginTop: '1rem', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
