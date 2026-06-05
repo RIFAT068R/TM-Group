@@ -8,61 +8,58 @@ import {
 } from 'recharts'
 import CustomSelect from '@/components/CustomSelect'
 
-// Radar data for overall metrics
-const radarData = [
-  { metric: 'Placements', score: 82 },
-  { metric: 'Revenue',    score: 74 },
-  { metric: 'Agencies',   score: 68 },
-  { metric: 'Workers',    score: 90 },
-  { metric: 'Retention',  score: 71 },
-  { metric: 'Growth',     score: 78 },
-]
-
-// 3-Month Placements Trend Forecast data (continuous actual and forecast lines)
-const trendData = [
-  { month: 'Jan', actual: 12, forecast: null },
-  { month: 'Feb', actual: 16, forecast: null },
-  { month: 'Mar', actual: 14, forecast: null },
-  { month: 'Apr', actual: 20, forecast: null },
-  { month: 'May', actual: 24, forecast: null },
-  { month: 'Jun', actual: 28, forecast: 28 }, // Continuous join
-  { month: 'Jul', actual: null, forecast: 32 },
-  { month: 'Aug', actual: null, forecast: 35 },
-  { month: 'Sep', actual: null, forecast: 40 },
-]
-
-// Country Placement Revenue Share (Doughnut Chart)
-const countryShareData = [
-  { name: 'Saudi Arabia', value: 3240000, color: 'var(--brand-accent)' },
-  { name: 'UAE',          value: 1925000, color: '#06B6D4' },
-  { name: 'Kuwait',       value: 1260000, color: '#10B981' },
-  { name: 'Qatar',        value: 1056000, color: '#F59E0B' },
-  { name: 'Malaysia',     value: 504000,  color: '#A78BFA' },
-  { name: 'Romania',      value: 400000,  color: '#EC4899' },
-]
-
-// Agency Matrix Bubble Chart Data
-const agencyScatterData = [
-  { x: 8.5,  y: 48, z: 324, name: 'Al Najah Recruitment' },
-  { x: 7.0,  y: 35, z: 192, name: 'Gulf Manpower Solutions' },
-  { x: 9.0,  y: 12, z: 50,  name: 'Asia Pacific Recruiters' },
-  { x: 6.5,  y: 22, z: 105, name: 'Qatar Employment Agency' },
-  { x: 10.0, y: 10, z: 40,  name: 'Korea Manpower Corp' },
-]
+const PIE_COLORS = ['var(--brand-accent)', '#06B6D4', '#10B981', '#F59E0B', '#A78BFA', '#EC4899', '#EF4444']
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 export default function TMAnalyticsPage() {
   const [mounted, setMounted] = useState(false)
+  const [placements, setPlacements] = useState<any[]>([])
 
-  // Profit Simulator State
   const [simCountry, setSimCountry] = useState('Saudi Arabia')
   const [simWorkerFee, setSimWorkerFee] = useState(320000)
   const [simAgencyFee, setSimAgencyFee] = useState(30000)
   const [simProcessingCost, setSimProcessingCost] = useState(180000)
   const [simAgentKickback, setSimAgentKickback] = useState(25000)
-  const [simOverheadPercent, setSimOverheadPercent] = useState(4) // administrative tax & overhead percentage
+  const [simOverheadPercent, setSimOverheadPercent] = useState(4)
+
+  const fetchPlacements = async () => {
+    try {
+      const { createClient, isSupabaseConfigured } = await import('@/lib/supabase/client')
+      if (!isSupabaseConfigured()) return
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('tm_placements')
+        .select('id, destination_country, processing_start_date, departure_date, worker_fee, agency_fee, commission_amount, status, tm_workers(full_name), tm_agencies(name)')
+        .order('created_at', { ascending: false })
+      if (data) {
+        setPlacements(data)
+        try { localStorage.setItem('tm_analytics_placements', JSON.stringify(data)) } catch (e) {}
+      }
+    } catch (err: any) {
+      console.error('TM Analytics fetch error:', err.message)
+      try { const c = localStorage.getItem('tm_analytics_placements'); if (c) setPlacements(JSON.parse(c)) } catch (e) {}
+    }
+  }
 
   useEffect(() => {
     setMounted(true)
+    try { const c = localStorage.getItem('tm_analytics_placements'); if (c) setPlacements(JSON.parse(c)) } catch (e) {}
+    let channel: any
+    const setup = async () => {
+      const { isSupabaseConfigured, createClient } = await import('@/lib/supabase/client')
+      if (isSupabaseConfigured()) {
+        await fetchPlacements()
+        const supabase = createClient()
+        channel = supabase
+          .channel('tm-analytics-changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'tm_placements' }, () => fetchPlacements())
+          .subscribe()
+      }
+    }
+    setup()
+    return () => {
+      if (channel) import('@/lib/supabase/client').then(({ createClient }) => createClient().removeChannel(channel))
+    }
   }, [])
 
   // Calculator Computations
@@ -72,18 +69,77 @@ export default function TMAnalyticsPage() {
   const simNetProfit = simTotalRevenue - simTotalCost
   const simMargin = simTotalRevenue > 0 ? (simNetProfit / simTotalRevenue) * 100 : 0
 
-  let simHealth = 'CRITICAL'
-  let simHealthColor = '#EF4444'
-  let simHealthDesc = 'Margin is below 10%. Expenses and agent kickbacks are too high relative to the worker fee.'
-  if (simMargin >= 25) {
-    simHealth = 'HIGHLY PROFITABLE'
-    simHealthColor = '#10B981'
-    simHealthDesc = 'Excellent margin! Healthy operational profit fully covering processing overheads.'
-  } else if (simMargin >= 10) {
-    simHealth = 'MODERATE / ACCEPTABLE'
-    simHealthColor = '#F59E0B'
-    simHealthDesc = 'Acceptable margins. Keep administrative overheads and local agent fees low.'
-  }
+  let simHealth = 'CRITICAL'; let simHealthColor = '#EF4444'
+  let simHealthDesc = 'Margin is below 10%. Expenses and agent kickbacks are too high.'
+  if (simMargin >= 25) { simHealth = 'HIGHLY PROFITABLE'; simHealthColor = '#10B981'; simHealthDesc = 'Excellent margin! Healthy operational profit fully covering processing overheads.' }
+  else if (simMargin >= 10) { simHealth = 'MODERATE / ACCEPTABLE'; simHealthColor = '#F59E0B'; simHealthDesc = 'Acceptable margins. Keep administrative overheads and local agent fees low.' }
+
+  // ── Map placements to usable shape ──
+  const mapped = placements.map((p: any) => ({
+    date: p.departure_date || p.processing_start_date || '',
+    country: p.destination_country || 'Unknown',
+    agency: p.tm_agencies?.name || 'Direct',
+    fee: Number(p.worker_fee || 0) + Number(p.agency_fee || 0) + Number(p.commission_amount || 0),
+    status: p.status || 'processing',
+  }))
+
+  const totalRevenue = mapped.reduce((s, p) => s + p.fee, 0)
+  const totalProfit  = Math.round(totalRevenue * 0.4)
+  const avgFee = mapped.length > 0 ? Math.round(totalRevenue / mapped.length) : 0
+  const activeCount = mapped.filter(p => p.status === 'working' || p.status === 'departed').length
+  const successRate = mapped.length > 0 ? ((activeCount / mapped.length) * 100).toFixed(1) : '0.0'
+
+  // ── Trend Data — last 6 months actual + 3 months forecast ──
+  const trendData = (() => {
+    const result: any[] = []
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(); d.setMonth(d.getMonth() - i)
+      const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      const count = mapped.filter(p => p.date.startsWith(ym)).length
+      result.push({ month: MONTHS[d.getMonth()], actual: count, forecast: null })
+    }
+    const last = result[result.length - 1].actual
+    for (let i = 1; i <= 3; i++) {
+      const d = new Date(); d.setMonth(d.getMonth() + i)
+      result.push({ month: MONTHS[d.getMonth()], actual: null, forecast: last > 0 ? Math.round(last * Math.pow(1.08, i)) : null })
+    }
+    if (result.length >= 4) result[5].forecast = result[5].actual
+    return result
+  })()
+
+  // ── Country Revenue Share ──
+  const countryMap: Record<string, number> = {}
+  mapped.forEach(p => { countryMap[p.country] = (countryMap[p.country] || 0) + p.fee })
+  const countryShareData = Object.entries(countryMap)
+    .map(([name, value], i) => ({ name, value, color: PIE_COLORS[i % PIE_COLORS.length] }))
+    .sort((a, b) => b.value - a.value).slice(0, 6)
+
+  // ── Agency Scatter Data ──
+  const agencyMap: Record<string, { placements: number; revenue: number }> = {}
+  mapped.forEach(p => {
+    if (!agencyMap[p.agency]) agencyMap[p.agency] = { placements: 0, revenue: 0 }
+    agencyMap[p.agency].placements += 1
+    agencyMap[p.agency].revenue += p.fee
+  })
+  const agencyScatterData = Object.entries(agencyMap)
+    .map(([name, d]) => ({ x: Math.round(d.revenue / 100000), y: d.placements, z: d.placements * 20, name }))
+    .filter(d => d.y > 0)
+
+  // ── Radar Data ──
+  const maxRev = 5000000
+  const radarData = [
+    { metric: 'Placements', score: Math.min(100, Math.round((mapped.length / 50) * 100)) },
+    { metric: 'Revenue',    score: Math.min(100, Math.round((totalRevenue / maxRev) * 100)) },
+    { metric: 'Agencies',   score: Math.min(100, Object.keys(agencyMap).length * 15) },
+    { metric: 'Workers',    score: Math.min(100, activeCount * 5) },
+    { metric: 'Retention',  score: Number(successRate) },
+    { metric: 'Growth',     score: mapped.length > 0 ? 65 : 0 },
+  ]
+  const avgScore = Math.round(radarData.reduce((s, x) => s + x.score, 0) / radarData.length)
+
+  // Country list for simulator
+  const uniqueCountries = Array.from(new Set(mapped.map(p => p.country).filter(Boolean)))
+  const simCountries = uniqueCountries.length > 0 ? uniqueCountries : ['Saudi Arabia', 'UAE', 'Qatar', 'Kuwait', 'Malaysia']
 
   return (
     <div>
@@ -96,7 +152,9 @@ export default function TMAnalyticsPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Advanced Analytics</h1>
-          <p className="page-subtitle">Deep-dive performance metrics & interactive profit modeling for TM Overseas</p>
+          <p className="page-subtitle">
+            {mapped.length > 0 ? `Live data · ${mapped.length} placements analysed` : 'Deep-dive performance metrics & interactive profit modeling'}
+          </p>
         </div>
       </div>
 
@@ -149,8 +207,11 @@ export default function TMAnalyticsPage() {
               <div className="chart-title">Placement Revenue Share</div>
               <div className="chart-subtitle">Percentage revenue contribution by destination countries</div>
             </div>
-            <span className="chart-badge amber">2026</span>
+          <div className="chart-badge amber">Live</div>
           </div>
+          {countryShareData.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>No placement data yet</div>
+          ) : (
           <div style={{ display: 'flex', alignItems: 'center', height: '260px' }}>
             <div style={{ width: '55%', height: '100%' }}>
               {mounted && (
@@ -188,7 +249,7 @@ export default function TMAnalyticsPage() {
             
             {/* Custom Doughnut Legend */}
             <div style={{ width: '45%', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.78rem', paddingLeft: '0.5rem' }}>
-              {countryShareData.map(c => (
+              {countryShareData.map((c, i) => (
                 <div key={c.name} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: c.color, flexShrink: 0 }} />
                   <div style={{ minWidth: '0', flex: 1 }}>
@@ -199,6 +260,7 @@ export default function TMAnalyticsPage() {
               ))}
             </div>
           </div>
+          )}
         </div>
 
       </div>
@@ -213,7 +275,7 @@ export default function TMAnalyticsPage() {
               <div className="chart-title">Placement Performance Radar</div>
               <div className="chart-subtitle">Overall score across operational categories</div>
             </div>
-            <span className="chart-badge">Score · 77</span>
+            <span className="chart-badge">Score · {avgScore}</span>
           </div>
           {mounted && (
             <ResponsiveContainer width="100%" height={260}>
@@ -235,11 +297,13 @@ export default function TMAnalyticsPage() {
             </div>
             <span className="chart-badge blue">Agencies</span>
           </div>
-          {mounted && (
+          {agencyScatterData.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>No agency data yet</div>
+          ) : mounted && (
             <ResponsiveContainer width="100%" height={260}>
               <ScatterChart margin={{ top: 10, right: 10, left: -22, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis type="number" dataKey="x" name="Commission Rate" unit="%" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
+                <XAxis type="number" dataKey="x" name="Revenue (L BDT)" unit="L" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
                 <YAxis type="number" dataKey="y" name="Placements" unit=" workers" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} />
                 <ZAxis type="number" dataKey="z" range={[60, 400]} />
                 <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '0.78rem' }} />
@@ -267,12 +331,8 @@ export default function TMAnalyticsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                 <label className="form-label">Destination Country</label>
-                <CustomSelect
-                  value={simCountry}
-                  onChange={setSimCountry}
-                  style={{ width: '100%' }}
-                  options={['Saudi Arabia','UAE','Qatar','Kuwait','Malaysia','Romania','South Korea'].map(c => ({ value: c, label: c }))}
-                />
+                <CustomSelect value={simCountry} onChange={setSimCountry} style={{ width: '100%' }}
+                  options={simCountries.map(c => ({ value: c, label: c }))} />
               </div>
 
               <div className="form-group">
@@ -350,12 +410,12 @@ export default function TMAnalyticsPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             {[
-              { label: 'Gross Profit Margin', value: '40.0%', desc: 'Direct placement profit index', color: '#10B981' },
-              { label: 'Worker Success Rate', value: '87.0%', desc: 'Workers successfully deployed', color: 'var(--brand-accent)' },
-              { label: 'Avg Processing Days', value: '45 days', desc: 'Average time for visa approval', color: '#06B6D4' },
-              { label: 'YoY Placement Growth', value: '+28.0%', desc: 'Annual scaling speed of workers', color: '#7C3AED' },
-              { label: 'Retention Rate (1yr)', value: '72.0%', desc: 'Workers staying abroad over 1 year', color: '#F59E0B' },
-              { label: 'Avg Revenue per Worker', value: '৳18,400', desc: 'Average gross processing returns', color: '#10B981' },
+              { label: 'Total Placements',    value: String(mapped.length),                          desc: 'All-time placements recorded', color: '#A78BFA' },
+              { label: 'Active / Deployed',    value: String(activeCount),                            desc: 'Working or departed', color: '#10B981' },
+              { label: 'Worker Success Rate',  value: `${successRate}%`,                              desc: 'Workers working or departed', color: 'var(--brand-accent)' },
+              { label: 'Total Revenue',        value: `৳${(totalRevenue / 100000).toFixed(1)}L`,     desc: 'All-time gross revenue', color: '#06B6D4' },
+              { label: 'Est. Net Profit',      value: `৳${(totalProfit / 100000).toFixed(1)}L`,      desc: 'Estimated 40% margin', color: '#10B981' },
+              { label: 'Avg Revenue/Worker',   value: avgFee > 0 ? `৳${avgFee.toLocaleString()}` : '—', desc: 'Average gross per placement', color: '#F59E0B' },
             ].map(r => (
               <div key={r.label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.875rem' }}>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.25rem' }}>{r.label}</div>

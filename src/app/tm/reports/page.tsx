@@ -5,31 +5,13 @@ import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, R
 import CustomSelect from '@/components/CustomSelect'
 import DatePicker from '@/components/DatePicker'
 
-// Default rich mock placements dataset for the year 2026
-const defaultMockPlacements = [
-  { id: 'PL-2026-001', date: '2026-01-10', worker: 'Mohammad Alam', passport: 'EE1234567', country: 'Saudi Arabia', agency: 'Al Najah Recruitment', fee: 350000, salary: 1200, status: 'working' },
-  { id: 'PL-2026-002', date: '2026-01-18', worker: 'Fatima Begum', passport: 'EE7654321', country: 'Malaysia', agency: 'Asia Pacific Recruiters', fee: 280000, salary: 1000, status: 'processing' },
-  { id: 'PL-2026-003', date: '2026-02-05', worker: 'Karim Mia', passport: 'EE9876543', country: 'UAE', agency: 'Gulf Manpower Solutions', fee: 320000, salary: 1500, status: 'visa_approved' },
-  { id: 'PL-2026-004', date: '2026-02-15', worker: 'Roshida Khatun', passport: 'EE3456789', country: 'Qatar', agency: 'Qatar Employment Agency', fee: 300000, salary: 1100, status: 'working' },
-  { id: 'PL-2026-005', date: '2026-03-02', worker: 'Abdul Mannan', passport: 'EE4567890', country: 'South Korea', agency: 'Korea Manpower Corp', fee: 450000, salary: 2000, status: 'processing' },
-  { id: 'PL-2026-006', date: '2026-03-12', worker: 'Kamal Hossain', passport: 'EE5678901', country: 'Saudi Arabia', agency: 'Al Najah Recruitment', fee: 360000, salary: 1250, status: 'departed' },
-  { id: 'PL-2026-007', date: '2026-04-05', worker: 'Abul Kashem', passport: 'EE6789012', country: 'UAE', agency: 'Gulf Manpower Solutions', fee: 330000, salary: 1400, status: 'working' },
-  { id: 'PL-2026-008', date: '2026-04-22', worker: 'Sajeda Begum', passport: 'EE7890123', country: 'Malaysia', agency: 'Asia Pacific Recruiters', fee: 290000, salary: 950, status: 'returned' },
-  { id: 'PL-2026-009', date: '2026-05-08', worker: 'Mizanur Rahman', passport: 'EE8901234', country: 'Saudi Arabia', agency: 'Al Najah Recruitment', fee: 350000, salary: 1200, status: 'working' },
-  { id: 'PL-2026-010', date: '2026-05-24', worker: 'Nur Islam', passport: 'EE9012345', country: 'Kuwait', agency: 'Kuwait Manpower Co.', fee: 310000, salary: 1300, status: 'visa_approved' },
-  { id: 'PL-2026-011', date: '2026-05-30', worker: 'Farhana Yasmin', passport: 'EE1112223', country: 'Qatar', agency: 'Qatar Employment Agency', fee: 300000, salary: 1150, status: 'working' },
-  { id: 'PL-2026-012', date: '2026-06-01', worker: 'Jahanara Akhtar', passport: 'EE0123456', country: 'Romania', agency: 'EuroLink Manpower', fee: 400000, salary: 1800, status: 'processing' },
-  { id: 'PL-2026-013', date: '2026-06-02', worker: 'Belal Hossain', passport: 'EE2223334', country: 'Saudi Arabia', agency: 'Al Najah Recruitment', fee: 350000, salary: 1200, status: 'departed' }
-];
-
-const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default function TMReportsPage() {
   const [tab, setTab] = useState<'financial'|'country'|'placement'>('financial')
   const [mounted, setMounted] = useState(false)
-  const [placementsList, setPlacementsList] = useState<any[]>(defaultMockPlacements);
+  const [placementsList, setPlacementsList] = useState<any[]>([])
 
-  // Filters State
   const [search, setSearch] = useState('')
   const [countryFilter, setCountryFilter] = useState('')
   const [agencyFilter, setAgencyFilter] = useState('')
@@ -38,66 +20,57 @@ export default function TMReportsPage() {
   const [customStartDate, setCustomStartDate] = useState('')
   const [customEndDate, setCustomEndDate] = useState('')
 
+  const fetchPlacements = async () => {
+    try {
+      const { createClient, isSupabaseConfigured } = await import('@/lib/supabase/client')
+      if (!isSupabaseConfigured()) return
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('tm_placements')
+        .select('id, reference_number, destination_country, processing_start_date, departure_date, worker_fee, agency_fee, commission_amount, salary_amount, status, tm_workers(full_name, passport_number), tm_agencies(name)')
+        .order('created_at', { ascending: false })
+      if (error) throw new Error(error.message)
+      if (data) {
+        const mapped = data.map((item: any) => ({
+          id: item.reference_number || `PL-${String(item.id).slice(0, 8)}`,
+          date: item.departure_date || item.processing_start_date || '',
+          worker: item.tm_workers?.full_name || 'Unknown',
+          passport: item.tm_workers?.passport_number || '—',
+          country: item.destination_country || 'Unknown',
+          agency: item.tm_agencies?.name || 'Direct',
+          fee: Number(item.worker_fee || 0) + Number(item.agency_fee || 0) + Number(item.commission_amount || 0),
+          salary: Number(item.salary_amount || 0),
+          status: item.status || 'processing',
+        }))
+        setPlacementsList(mapped)
+        try { localStorage.setItem('tm_reports_placements', JSON.stringify(mapped)) } catch (e) {}
+      }
+    } catch (err: any) {
+      console.error('TM Reports fetch error:', err.message)
+      try { const c = localStorage.getItem('tm_reports_placements'); if (c) setPlacementsList(JSON.parse(c)) } catch (e) {}
+    }
+  }
+
   useEffect(() => {
     setMounted(true)
-
-    // Load active placements from Supabase to merge with mock dataset
-    const loadPlacementsFromSupabase = async () => {
-      try {
-        const { createClient } = await import('@/lib/supabase/client');
-        const supabase = createClient();
-
-        const { data: dbPlacements } = await supabase
-          .from('tm_placements')
-          .select(`
-            id,
-            reference_number,
-            destination_country,
-            processing_start_date,
-            departure_date,
-            worker_fee,
-            agency_fee,
-            commission_amount,
-            salary_amount,
-            status,
-            tm_workers(full_name, passport_number),
-            tm_agencies(name)
-          `);
-
-        if (dbPlacements && dbPlacements.length > 0) {
-          const mapped = dbPlacements.map((item: any) => {
-            const date = item.departure_date || item.processing_start_date || new Date().toISOString().split('T')[0];
-            const workerName = item.tm_workers?.full_name || 'Unknown';
-            const passport = item.tm_workers?.passport_number || 'Unknown';
-            const agencyName = item.tm_agencies?.name || 'Direct';
-            const country = item.destination_country || 'Unknown';
-            const fee = Number(item.worker_fee || 0) + Number(item.agency_fee || 0) + Number(item.commission_amount || 0);
-            const salary = Number(item.salary_amount || 0);
-            const status = item.status || 'processing';
-
-            return {
-              id: item.reference_number || `PL-${item.id.slice(0, 8)}`,
-              date,
-              worker: workerName,
-              passport,
-              country,
-              agency: agencyName,
-              fee: fee > 0 ? fee : 300000,
-              salary,
-              status
-            };
-          });
-
-          // Prepend actual db placements to mock dataset
-          setPlacementsList([...mapped, ...defaultMockPlacements]);
-        }
-      } catch (err) {
-        console.error('Failed to load database placements:', err);
+    try { const c = localStorage.getItem('tm_reports_placements'); if (c) setPlacementsList(JSON.parse(c)) } catch (e) {}
+    let channel: any
+    const setup = async () => {
+      const { isSupabaseConfigured, createClient } = await import('@/lib/supabase/client')
+      if (isSupabaseConfigured()) {
+        await fetchPlacements()
+        const supabase = createClient()
+        channel = supabase
+          .channel('tm-reports-changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'tm_placements' }, () => fetchPlacements())
+          .subscribe()
       }
-    };
-
-    loadPlacementsFromSupabase();
-  }, []);
+    }
+    setup()
+    return () => {
+      if (channel) import('@/lib/supabase/client').then(({ createClient }) => createClient().removeChannel(channel))
+    }
+  }, [])
 
   // Multi-dimensional filtering logic
   const filteredPlacements = placementsList.filter(p => {
@@ -111,20 +84,22 @@ export default function TMReportsPage() {
     const matchesAgency = agencyFilter ? p.agency === agencyFilter : true;
     const matchesStatus = statusFilter ? p.status === statusFilter : true;
 
-    // Timeframe filtering based on system local date
+    // Dynamic timeframe filtering
     let matchesTime = true;
     const pDate = new Date(p.date);
-    const today = new Date('2026-06-05');
+    const now = new Date(); now.setHours(23, 59, 59, 999);
+    const todayStr = new Date().toISOString().split('T')[0];
+    const thisMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
     if (timeframe === 'Daily') {
-      matchesTime = p.date === '2026-06-05';
+      matchesTime = p.date === todayStr;
     } else if (timeframe === 'Weekly') {
-      const oneWeekAgo = new Date('2026-05-29');
-      matchesTime = pDate >= oneWeekAgo && pDate <= today;
+      const oneWeekAgo = new Date(now); oneWeekAgo.setDate(now.getDate() - 7);
+      matchesTime = pDate >= oneWeekAgo && pDate <= now;
     } else if (timeframe === 'Monthly') {
-      matchesTime = p.date.startsWith('2026-06');
+      matchesTime = p.date.startsWith(thisMonthStr);
     } else if (timeframe === 'Yearly') {
-      matchesTime = p.date.startsWith('2026');
+      matchesTime = p.date.startsWith(String(now.getFullYear()));
     } else if (timeframe === 'Custom') {
       const start = customStartDate ? new Date(customStartDate) : null;
       const end = customEndDate ? new Date(customEndDate) : null;
@@ -148,9 +123,11 @@ export default function TMReportsPage() {
   const totalPlacementsCount = filteredPlacements.length;
   const activeWorkersCount = filteredPlacements.filter(p => p.status === 'working' || p.status === 'departed').length;
 
-  // Dynamic Chart aggregations
-  const dynamicMonthlyData = months.map((month, idx) => {
-    const monthPrefix = `2026-0${idx + 1}-`;
+  // Dynamic Chart aggregations — last 6 months
+  const dynamicMonthlyData = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(); d.setMonth(d.getMonth() - (5 - i));
+    const monthPrefix = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const month = MONTHS[d.getMonth()];
     const monthPlacements = filteredPlacements.filter(p => p.date.startsWith(monthPrefix));
     
     const revenue = monthPlacements.reduce((sum, p) => sum + p.fee, 0);
@@ -349,11 +326,11 @@ export default function TMReportsPage() {
           style={{ flex: '1 1 120px', minWidth: 140 }}
           options={[
             { value: 'All Time', label: 'All Time' },
-            { value: 'Daily', label: 'Daily (Today)' },
-            { value: 'Weekly', label: 'Weekly (Last 7 Days)' },
-            { value: 'Monthly', label: 'Monthly (June)' },
-            { value: 'Yearly', label: 'Yearly (2026)' },
-            { value: 'Custom', label: 'Custom Date Range...' },
+            { value: 'Daily', label: 'Today' },
+            { value: 'Weekly', label: 'Last 7 Days' },
+            { value: 'Monthly', label: 'This Month' },
+            { value: 'Yearly', label: 'This Year' },
+            { value: 'Custom', label: 'Custom Range...' },
           ]}
         />
 
