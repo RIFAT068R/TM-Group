@@ -28,11 +28,78 @@ export default function ChemicalsPage() {
   const [form, setForm] = useState({ name:'', sku:'', category:'Acids', unit:'kg', minStock:'', dram:'', origin:'', purchasePrice:'', sellingPrice:'' })
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [editingChemical, setEditingChemical] = useState<typeof INITIAL_CHEMICALS[0] | null>(null)
 
   const handleDeleteChemical = (id: number) => {
     if (window.confirm('Are you sure you want to delete this chemical?')) {
       setChemicalsList(chemicalsList.filter(c => c.id !== id))
     }
+  }
+
+  const handleEditClick = (chem: typeof INITIAL_CHEMICALS[0]) => {
+    setEditingChemical(chem)
+    setForm({
+      name: chem.name,
+      sku: chem.sku,
+      category: chem.category,
+      unit: chem.unit,
+      minStock: String(chem.minStock),
+      dram: chem.dram || '',
+      origin: chem.origin || '',
+      purchasePrice: String(chem.purchasePrice || ''),
+      sellingPrice: String(chem.sellingPrice || '')
+    })
+    setShowModal(true)
+  }
+
+  const handleAddClick = () => {
+    setEditingChemical(null)
+    setForm({ name: '', sku: '', category: 'Acids', unit: 'kg', minStock: '', dram: '', origin: '', purchasePrice: '', sellingPrice: '' })
+    setShowModal(true)
+  }
+
+  const handleSaveChemical = () => {
+    if (!form.name.trim()) {
+      alert('Chemical Name is required.')
+      return
+    }
+    if (editingChemical) {
+      setChemicalsList(prev => prev.map(c => c.id === editingChemical.id ? {
+        ...c,
+        name: form.name.trim(),
+        sku: form.sku.trim() || c.sku,
+        category: form.category,
+        unit: form.unit,
+        minStock: Number(form.minStock) || 0,
+        dram: form.dram.trim() || '—',
+        origin: form.origin.trim() || '—',
+        purchasePrice: Number(form.purchasePrice) || 0,
+        sellingPrice: Number(form.sellingPrice) || 0
+      } : c))
+      alert('Chemical updated successfully! (Stored in-memory; connect Supabase for permanent storage)')
+    } else {
+      const newId = chemicalsList.length + 1
+      const newSku = form.sku.trim() || `TE-CHEM-${String(newId).padStart(3, '0')}`
+      const newChem = {
+        id: newId,
+        name: form.name.trim(),
+        sku: newSku,
+        category: form.category,
+        unit: form.unit,
+        dram: form.dram.trim() || '—',
+        origin: form.origin.trim() || '—',
+        stock: 0,
+        minStock: Number(form.minStock) || 0,
+        purchasePrice: Number(form.purchasePrice) || 0,
+        sellingPrice: Number(form.sellingPrice) || 0,
+        status: 'out_of_stock' as const
+      }
+      setChemicalsList([...chemicalsList, newChem])
+      alert('Chemical added successfully! (Stored in-memory; connect Supabase for permanent storage)')
+    }
+    setShowModal(false)
+    setEditingChemical(null)
+    setForm({ name: '', sku: '', category: 'Acids', unit: 'kg', minStock: '', dram: '', origin: '', purchasePrice: '', sellingPrice: '' })
   }
 
   useEffect(() => {
@@ -85,7 +152,7 @@ export default function ChemicalsPage() {
         </div>
         <div className="page-actions">
           {isAdmin && (
-            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+            <button className="btn btn-primary" onClick={handleAddClick}>
               <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
               Add Chemical
             </button>
@@ -148,7 +215,7 @@ export default function ChemicalsPage() {
                 <td><span className={`badge ${statusStyles[c.status].cls}`}>{statusStyles[c.status].label}</span></td>
                 <td>
                   <div style={{ display:'flex', gap:'0.4rem' }}>
-                    <button className="btn btn-ghost btn-sm" aria-label={`Edit ${c.name}`}>✏️</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => handleEditClick(c)} aria-label={`Edit ${c.name}`}>✏️</button>
                     <button className="btn btn-danger btn-sm" onClick={() => handleDeleteChemical(c.id)} aria-label={`Delete ${c.name}`}>🗑️</button>
                   </div>
                 </td>
@@ -163,8 +230,8 @@ export default function ChemicalsPage() {
         <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={e => e.target === e.currentTarget && setShowModal(false)}>
           <div className="modal">
             <div className="modal-header">
-              <h2 id="modal-title" style={{ fontSize:'1.1rem', fontWeight:800 }}>Add New Chemical</h2>
-              <button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)} aria-label="Close modal">✕</button>
+              <h2 id="modal-title" style={{ fontSize:'1.1rem', fontWeight:800 }}>{editingChemical ? 'Edit Chemical' : 'Add New Chemical'}</h2>
+              <button className="btn btn-ghost btn-icon" onClick={() => { setShowModal(false); setEditingChemical(null); }} aria-label="Close modal">✕</button>
             </div>
             <div className="modal-body">
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem' }}>
@@ -225,37 +292,12 @@ export default function ChemicalsPage() {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>
+              <button className="btn btn-ghost" onClick={() => { setShowModal(false); setEditingChemical(null); }}>Cancel</button>
               <button
                 className="btn btn-primary"
-                onClick={() => {
-                  if (!form.name.trim()) {
-                    alert('Chemical Name is required.');
-                    return;
-                  }
-                  const newId = chemicalsList.length + 1;
-                  const newSku = form.sku.trim() || `TE-CHEM-${String(newId).padStart(3, '0')}`;
-                  const newChem = {
-                    id: newId,
-                    name: form.name.trim(),
-                    sku: newSku,
-                    category: form.category,
-                    unit: form.unit,
-                    dram: form.dram.trim() || '—',
-                    origin: form.origin.trim() || '—',
-                    stock: 0,
-                    minStock: Number(form.minStock) || 0,
-                    purchasePrice: Number(form.purchasePrice) || 0,
-                    sellingPrice: Number(form.sellingPrice) || 0,
-                    status: 'out_of_stock'
-                  };
-                  setChemicalsList([...chemicalsList, newChem]);
-                  setShowModal(false);
-                  setForm({ name: '', sku: '', category: 'Acids', unit: 'kg', minStock: '', dram: '', origin: '', purchasePrice: '', sellingPrice: '' });
-                  alert('Chemical added successfully! (Stored in-memory; connect Supabase for permanent storage)');
-                }}
+                onClick={handleSaveChemical}
               >
-                Add Chemical
+                {editingChemical ? 'Save Changes' : 'Add Chemical'}
               </button>
             </div>
           </div>
