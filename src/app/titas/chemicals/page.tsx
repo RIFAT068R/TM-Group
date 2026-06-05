@@ -4,14 +4,14 @@ import Link from 'next/link'
 import CustomSelect from '@/components/CustomSelect'
 
 const INITIAL_CHEMICALS = [
-  { id: 1, name: 'Sulfuric Acid',      sku: 'TE-CHEM-001', category: 'Acids',    unit: 'kg',    dram: '200 kg', origin: 'China',        stock: 1200, minStock: 200, price: 85,  status: 'in_stock' },
-  { id: 2, name: 'Sodium Hydroxide',   sku: 'TE-CHEM-002', category: 'Bases',    unit: 'kg',    dram: '25 kg',  origin: 'Saudi Arabia', stock: 850,  minStock: 150, price: 65,  status: 'in_stock' },
-  { id: 3, name: 'Hydrochloric Acid',  sku: 'TE-CHEM-003', category: 'Acids',    unit: 'liter', dram: '250L',   origin: 'India',        stock: 120,  minStock: 200, price: 55,  status: 'low_stock' },
-  { id: 4, name: 'Ethanol',            sku: 'TE-CHEM-004', category: 'Solvents', unit: 'liter', dram: '200L',   origin: 'Malaysia',     stock: 650,  minStock: 100, price: 95,  status: 'in_stock' },
-  { id: 5, name: 'Acetone',            sku: 'TE-CHEM-005', category: 'Solvents', unit: 'liter', dram: '160 kg', origin: 'India',        stock: 80,   minStock: 150, price: 72,  status: 'low_stock' },
-  { id: 6, name: 'Methanol',           sku: 'TE-CHEM-006', category: 'Solvents', unit: 'liter', dram: '200L',   origin: 'China',        stock: 430,  minStock: 100, price: 48,  status: 'in_stock' },
-  { id: 7, name: 'Nitric Acid',        sku: 'TE-CHEM-007', category: 'Acids',    unit: 'liter', dram: '250 kg', origin: 'Germany',      stock: 0,    minStock: 100, price: 110, status: 'out_of_stock' },
-  { id: 8, name: 'Calcium Carbonate',  sku: 'TE-CHEM-008', category: 'Salts',    unit: 'kg',    dram: '25 kg',  origin: 'Bangladesh',   stock: 2100, minStock: 300, price: 32,  status: 'in_stock' },
+  { id: 1, name: 'Sulfuric Acid',      sku: 'TE-CHEM-001', category: 'Acids',    unit: 'kg',    dram: '200 kg', origin: 'China',        stock: 1200, minStock: 200, purchasePrice: 65, sellingPrice: 85,  status: 'in_stock' },
+  { id: 2, name: 'Sodium Hydroxide',   sku: 'TE-CHEM-002', category: 'Bases',    unit: 'kg',    dram: '25 kg',  origin: 'Saudi Arabia', stock: 850,  minStock: 150, purchasePrice: 48, sellingPrice: 65,  status: 'in_stock' },
+  { id: 3, name: 'Hydrochloric Acid',  sku: 'TE-CHEM-003', category: 'Acids',    unit: 'liter', dram: '250L',   origin: 'India',        stock: 120,  minStock: 200, purchasePrice: 40, sellingPrice: 55,  status: 'low_stock' },
+  { id: 4, name: 'Ethanol',            sku: 'TE-CHEM-004', category: 'Solvents', unit: 'liter', dram: '200L',   origin: 'Malaysia',     stock: 650,  minStock: 100, purchasePrice: 70, sellingPrice: 95,  status: 'in_stock' },
+  { id: 5, name: 'Acetone',            sku: 'TE-CHEM-005', category: 'Solvents', unit: 'liter', dram: '160 kg', origin: 'India',        stock: 80,   minStock: 150, purchasePrice: 52, sellingPrice: 72,  status: 'low_stock' },
+  { id: 6, name: 'Methanol',           sku: 'TE-CHEM-006', category: 'Solvents', unit: 'liter', dram: '200L',   origin: 'China',        stock: 430,  minStock: 100, purchasePrice: 35, sellingPrice: 48,  status: 'in_stock' },
+  { id: 7, name: 'Nitric Acid',        sku: 'TE-CHEM-007', category: 'Acids',    unit: 'liter', dram: '250 kg', origin: 'Germany',      stock: 0,    minStock: 100, purchasePrice: 80, sellingPrice: 110, status: 'out_of_stock' },
+  { id: 8, name: 'Calcium Carbonate',  sku: 'TE-CHEM-008', category: 'Salts',    unit: 'kg',    dram: '25 kg',  origin: 'Bangladesh',   stock: 2100, minStock: 300, purchasePrice: 22, sellingPrice: 32,  status: 'in_stock' },
 ]
 
 const statusStyles: Record<string, { label: string; cls: string }> = {
@@ -25,7 +25,7 @@ export default function ChemicalsPage() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [showModal, setShowModal] = useState(false)
-  const [form, setForm] = useState({ name:'', sku:'', category:'Acids', unit:'kg', minStock:'', dram:'', origin:'' })
+  const [form, setForm] = useState({ name:'', sku:'', category:'Acids', unit:'kg', minStock:'', dram:'', origin:'', purchasePrice:'', sellingPrice:'' })
   const [isAdmin, setIsAdmin] = useState(false)
 
   const handleDeleteChemical = (id: number) => {
@@ -103,12 +103,12 @@ export default function ChemicalsPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Chemical Name</th><th>SKU</th><th>Category</th><th>Unit</th><th>Dram</th><th>Origin</th><th>Current Stock</th><th>Min Stock</th><th>Buy Price (৳)</th><th>Status</th><th>Actions</th>
+              <th>Chemical Name</th><th>SKU</th><th>Category</th><th>Unit</th><th>Dram</th><th>Origin</th><th>Current Stock</th><th>Min Stock</th><th>Purchase Price (৳)</th><th>Sell Price (৳)</th><th>Status</th><th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
-              <tr><td colSpan={11}>
+              <tr><td colSpan={12}>
                 <div className="empty-state">
                   <div className="empty-icon">🧪</div>
                   <h3>No chemicals found</h3>
@@ -128,7 +128,8 @@ export default function ChemicalsPage() {
                   {c.stock.toLocaleString()}
                 </td>
                 <td className="num" style={{ color:'#64748B' }}>{c.minStock.toLocaleString()}</td>
-                <td className="num">৳{c.price}</td>
+                <td className="num">৳{c.purchasePrice?.toLocaleString() || 0}</td>
+                <td className="num">৳{c.sellingPrice?.toLocaleString() || 0}</td>
                 <td><span className={`badge ${statusStyles[c.status].cls}`}>{statusStyles[c.status].label}</span></td>
                 <td>
                   <div style={{ display:'flex', gap:'0.4rem' }}>
@@ -196,6 +197,16 @@ export default function ChemicalsPage() {
                   <input id="chem-origin" className="form-input" placeholder="e.g. China" value={form.origin} onChange={e => setForm({...form, origin:e.target.value})} />
                   <span className="form-hint">Country of origin</span>
                 </div>
+                <div className="form-group">
+                  <label htmlFor="chem-purchase" className="form-label">Purchase Price (৳)</label>
+                  <input id="chem-purchase" type="number" className="form-input" placeholder="0" value={form.purchasePrice} onChange={e => setForm({...form, purchasePrice:e.target.value})} />
+                  <span className="form-hint">Cost price per unit</span>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="chem-selling" className="form-label">Sell Price (৳)</label>
+                  <input id="chem-selling" type="number" className="form-input" placeholder="0" value={form.sellingPrice} onChange={e => setForm({...form, sellingPrice:e.target.value})} />
+                  <span className="form-hint">Selling price per unit</span>
+                </div>
               </div>
             </div>
             <div className="modal-footer">
@@ -219,12 +230,13 @@ export default function ChemicalsPage() {
                     origin: form.origin.trim() || '—',
                     stock: 0,
                     minStock: Number(form.minStock) || 0,
-                    price: 0,
+                    purchasePrice: Number(form.purchasePrice) || 0,
+                    sellingPrice: Number(form.sellingPrice) || 0,
                     status: 'out_of_stock'
                   };
                   setChemicalsList([...chemicalsList, newChem]);
                   setShowModal(false);
-                  setForm({ name: '', sku: '', category: 'Acids', unit: 'kg', minStock: '', dram: '', origin: '' });
+                  setForm({ name: '', sku: '', category: 'Acids', unit: 'kg', minStock: '', dram: '', origin: '', purchasePrice: '', sellingPrice: '' });
                   alert('Chemical added successfully! (Stored in-memory; connect Supabase for permanent storage)');
                 }}
               >
