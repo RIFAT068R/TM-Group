@@ -10,111 +10,240 @@ function LoginForm() {
   const redirect = searchParams.get('redirect') || '/dashboard'
   const module = searchParams.get('module') || ''
 
-  const [email, setEmail]       = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState('')
-  const [showPass, setShowPass] = useState(false)
+  const [mode, setMode]                       = useState<'login' | 'signup' | 'forgot'>('login')
+  const [email, setEmail]                     = useState('')
+  const [password, setPassword]               = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [loading, setLoading]                 = useState(false)
+  const [error, setError]                     = useState('')
+  const [success, setSuccess]                 = useState('')
+  const [showPass, setShowPass]               = useState(false)
 
   const supabase = createClient()
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setSuccess('')
 
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    if (mode === 'signup') {
+      if (password !== confirmPassword) {
+        setError('Passwords do not match.')
+        setLoading(false)
+        return
+      }
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters long.')
+        setLoading(false)
+        return
+      }
 
-    if (authError) {
-      setError(authError.message === 'Invalid login credentials'
-        ? 'Incorrect email or password. Please try again.'
-        : authError.message)
+      const origin = window.location.origin
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${origin}/auth/callback`,
+        }
+      })
+
+      if (signUpError) {
+        setError(signUpError.message)
+        setLoading(false)
+        return
+      }
+
+      setSuccess('Account created! Please check your email for a confirmation link to verify your account.')
+      setPassword('')
+      setConfirmPassword('')
       setLoading(false)
-      return
-    }
+    } else if (mode === 'forgot') {
+      const origin = window.location.origin
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${origin}/auth/callback?next=/reset-password`,
+      })
 
-    // Redirect to module if specified, else dashboard
-    if (module === 'titas') router.push('/titas/dashboard')
-    else if (module === 'tm') router.push('/tm/dashboard')
-    else router.push(redirect)
+      if (resetError) {
+        setError(resetError.message)
+        setLoading(false)
+        return
+      }
+
+      setSuccess('A password reset link has been sent to your email address.')
+      setLoading(false)
+    } else {
+      const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+
+      if (authError) {
+        setError(authError.message === 'Invalid login credentials'
+          ? 'Incorrect email or password. Please try again.'
+          : authError.message)
+        setLoading(false)
+        return
+      }
+
+      if (module === 'titas') router.push('/titas/dashboard')
+      else if (module === 'tm') router.push('/tm/dashboard')
+      else router.push(redirect)
+    }
   }
 
   return (
-    <form className={styles.form} onSubmit={handleLogin} noValidate>
-      {error && (
-        <div className={styles.errorBanner} role="alert" aria-live="assertive">
-          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          {error}
-        </div>
-      )}
-
-      <div className="form-group">
-        <label htmlFor="email" className="form-label">Email Address</label>
-        <input
-          id="email"
-          type="email"
-          className="form-input"
-          placeholder="you@company.com"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-          autoComplete="email"
-          autoFocus
-          aria-describedby={error ? 'login-error' : undefined}
-        />
+    <div>
+      {/* Tabs */}
+      <div className={styles.tabs}>
+        <button
+          type="button"
+          className={`${styles.tab} ${mode === 'login' ? styles.tabActive : ''}`}
+          onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
+        >
+          Sign In
+        </button>
+        <button
+          type="button"
+          className={`${styles.tab} ${mode === 'signup' ? styles.tabActive : ''}`}
+          onClick={() => { setMode('signup'); setError(''); setSuccess(''); }}
+        >
+          Sign Up
+        </button>
+        <button
+          type="button"
+          className={`${styles.tab} ${mode === 'forgot' ? styles.tabActive : ''}`}
+          onClick={() => { setMode('forgot'); setError(''); setSuccess(''); }}
+        >
+          Forgot Password
+        </button>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="password" className="form-label">Password</label>
-        <div className={styles.passWrap}>
-          <input
-            id="password"
-            type={showPass ? 'text' : 'password'}
-            className="form-input"
-            placeholder="••••••••"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            autoComplete="current-password"
-          />
-          <button
-            type="button"
-            className={styles.showPass}
-            onClick={() => setShowPass(p => !p)}
-            aria-label={showPass ? 'Hide password' : 'Show password'}
-            tabIndex={-1}
-          >
-            {showPass
-              ? <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"/></svg>
-              : <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            }
-          </button>
-        </div>
-      </div>
-
-      <button
-        type="submit"
-        className={`btn btn-primary ${styles.submitBtn}`}
-        disabled={loading || !email || !password}
-        aria-busy={loading}
-      >
-        {loading ? (
-          <>
-            <span className={styles.spinner} aria-hidden />
-            Signing in…
-          </>
-        ) : (
-          <>
-            Sign In
+      <form className={styles.form} onSubmit={handleSubmit} noValidate>
+        {error && (
+          <div className={styles.errorBanner} role="alert" aria-live="assertive">
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className={styles.successBanner} role="alert" aria-live="polite">
+            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {success}
+          </div>
+        )}
+
+        <div className="form-group">
+          <label htmlFor="email" className="form-label">Email Address</label>
+          <input
+            id="email"
+            type="email"
+            className="form-input"
+            placeholder="you@company.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+            autoFocus
+          />
+        </div>
+
+        {mode !== 'forgot' && (
+          <>
+            <div className="form-group">
+              <label htmlFor="password" className="form-label">Password</label>
+              <div className={styles.passWrap}>
+                <input
+                  id="password"
+                  type={showPass ? 'text' : 'password'}
+                  className="form-input"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                />
+                <button
+                  type="button"
+                  className={styles.showPass}
+                  onClick={() => setShowPass(p => !p)}
+                  aria-label={showPass ? 'Hide password' : 'Show password'}
+                  tabIndex={-1}
+                >
+                  {showPass
+                    ? <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"/></svg>
+                    : <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  }
+                </button>
+              </div>
+            </div>
+
+            {mode === 'signup' && (
+              <div className="form-group">
+                <label htmlFor="confirmPassword" className="form-label">Confirm Password</label>
+                <input
+                  id="confirmPassword"
+                  type={showPass ? 'text' : 'password'}
+                  className="form-input"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  required
+                  autoComplete="new-password"
+                />
+              </div>
+            )}
           </>
         )}
-      </button>
-    </form>
+
+        <button
+          type="submit"
+          className={`btn btn-primary ${styles.submitBtn}`}
+          disabled={loading || !email || (mode !== 'forgot' && !password) || (mode === 'signup' && !confirmPassword)}
+          aria-busy={loading}
+        >
+          {loading ? (
+            <>
+              <span className={styles.spinner} aria-hidden />
+              Processing…
+            </>
+          ) : mode === 'signup' ? (
+            'Create Account'
+          ) : mode === 'forgot' ? (
+            'Send Reset Link'
+          ) : (
+            'Sign In'
+          )}
+        </button>
+
+        {mode === 'login' && (
+          <div style={{ textAlign: 'center', marginTop: '0.25rem' }}>
+            <button
+              type="button"
+              className={styles.toggleViewLink}
+              onClick={() => { setMode('forgot'); setError(''); setSuccess(''); }}
+            >
+              Forgot Password?
+            </button>
+          </div>
+        )}
+
+        {mode !== 'login' && (
+          <div style={{ textAlign: 'center', marginTop: '0.25rem', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            Already have an account?{' '}
+            <button
+              type="button"
+              className={styles.toggleViewLink}
+              onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
+            >
+              Sign In
+            </button>
+          </div>
+        )}
+      </form>
+    </div>
   )
 }
 
