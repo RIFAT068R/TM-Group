@@ -4,7 +4,7 @@ import Link from 'next/link'
 import CustomSelect from '@/components/CustomSelect'
 import DatePicker from '@/components/DatePicker'
 
-const sales = [
+const INITIAL_SALES = [
   { id:'TE-2024-024', customer:'ACI Limited',           chemical:'Sulfuric Acid',     qty:500, unit:'kg',    buyPrice:85,  sellPrice:120, amount:60000, profit:17500, date:'2024-06-14', status:'paid' },
   { id:'TE-2024-023', customer:'Square Pharmaceuticals', chemical:'Ethanol',           qty:200, unit:'liter', buyPrice:95,  sellPrice:140, amount:28000, profit:9000,  date:'2024-06-13', status:'paid' },
   { id:'TE-2024-022', customer:'Renata Limited',         chemical:'Acetone',           qty:150, unit:'liter', buyPrice:72,  sellPrice:105, amount:15750, profit:4950,  date:'2024-06-12', status:'pending' },
@@ -16,12 +16,23 @@ const sales = [
 const statusStyle: Record<string,string> = { paid:'badge-success', pending:'badge-warning', overdue:'badge-danger', partial:'badge-info' }
 
 export default function SalesPage() {
+  const [salesList, setSalesList] = useState(INITIAL_SALES)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [showNew, setShowNew] = useState(false)
   const [form, setForm] = useState({ customer:'', chemical:'', qty:'', buyPrice:'', sellPrice:'', date:'', notes:'' })
-  const [viewItem, setViewItem] = useState<typeof sales[0]|null>(null)
+  const [viewItem, setViewItem] = useState<typeof INITIAL_SALES[0]|null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+
+  const handleUpdateStatus = (id: string, newStatus: string) => {
+    setSalesList(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s))
+    setViewItem(prev => {
+      if (prev && prev.id === id) {
+        return { ...prev, status: newStatus }
+      }
+      return prev
+    })
+  }
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -44,7 +55,7 @@ export default function SalesPage() {
       }
       const id = params.get('id');
       if (id) {
-        const found = sales.find(s => s.id === id);
+        const found = INITIAL_SALES.find(s => s.id === id);
         if (found) {
           setViewItem(found);
         }
@@ -56,7 +67,7 @@ export default function SalesPage() {
     }
   }, []);
 
-  const filtered = sales.filter(s =>
+  const filtered = salesList.filter(s =>
     (s.customer.toLowerCase().includes(search.toLowerCase()) || s.chemical.toLowerCase().includes(search.toLowerCase())) &&
     (statusFilter ? s.status === statusFilter : true)
   )
@@ -75,7 +86,7 @@ export default function SalesPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Sales Orders</h1>
-          <p className="page-subtitle">{sales.length} total sales · ৳{(sales.reduce((s,x)=>s+x.profit,0)/1000).toFixed(0)}k total profit this month</p>
+          <p className="page-subtitle">{salesList.length} total sales · ৳{(salesList.reduce((s,x)=>s+x.profit,0)/1000).toFixed(0)}k total profit this month</p>
         </div>
         <div className="page-actions">
           {isAdmin && <button className="btn btn-primary" onClick={()=>setShowNew(true)}>+ New Sale</button>}
@@ -89,8 +100,8 @@ export default function SalesPage() {
           { label:'Total Revenue',  value:`৳${(totalRevenue/1000).toFixed(1)}k`,  accent:'#2563EB' },
           { label:'Total Profit',   value:`৳${(totalProfit/1000).toFixed(1)}k`,   accent:'#10B981' },
           { label:'Avg Margin',     value:`${totalRevenue>0?((totalProfit/totalRevenue)*100).toFixed(1):0}%`, accent:'#06B6D4' },
-          { label:'Pending',        value:`${sales.filter(s=>s.status==='pending').length}`,  accent:'#F59E0B' },
-          { label:'Overdue',        value:`${sales.filter(s=>s.status==='overdue').length}`,  accent:'#EF4444' },
+          { label:'Pending',        value:`${salesList.filter(s=>s.status==='pending').length}`,  accent:'#F59E0B' },
+          { label:'Overdue',        value:`${salesList.filter(s=>s.status==='overdue').length}`,  accent:'#EF4444' },
         ].map(k => (
           <div key={k.label} className="kpi-card" style={{ '--kpi-accent':k.accent } as React.CSSProperties}>
             <div className="kpi-label">{k.label}</div>
@@ -139,9 +150,19 @@ export default function SalesPage() {
                 <td className="num" style={{ color:'#06B6D4' }}>{((sale.profit/sale.amount)*100).toFixed(1)}%</td>
                 <td><span className={`badge ${statusStyle[sale.status]}`}>{sale.status}</span></td>
                 <td>
-                  <div style={{ display:'flex', gap:'0.3rem' }}>
+                  <div style={{ display:'flex', gap:'0.4rem', alignItems:'center' }}>
                     <button className="btn btn-ghost btn-sm" onClick={() => setViewItem(sale)}>View</button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => alert(`Invoice generated for ${sale.customer}`)}>Invoice</button>
+                    <CustomSelect
+                      value={sale.status}
+                      onChange={(newStatus) => handleUpdateStatus(sale.id, newStatus)}
+                      style={{ width: '105px' }}
+                      options={[
+                        { value: 'paid', label: 'Paid' },
+                        { value: 'pending', label: 'Pending' },
+                        { value: 'overdue', label: 'Overdue' },
+                        { value: 'partial', label: 'Partial' },
+                      ]}
+                    />
                   </div>
                 </td>
               </tr>
@@ -180,10 +201,29 @@ export default function SalesPage() {
                   </div>
                 ))}
               </div>
+              <div style={{ marginTop:'1.5rem', background:'var(--surface2)', borderRadius:'10px', padding:'1rem', border:'1px solid var(--border)' }}>
+                <div style={{ fontSize:'0.8rem', fontWeight:700, color:'var(--text-secondary)', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:'0.75rem' }}>Update Payment Status</div>
+                <div style={{ display:'flex', gap:'0.5rem', flexWrap:'wrap' }}>
+                  {[
+                    { value: 'paid', label: 'Paid' },
+                    { value: 'pending', label: 'Pending' },
+                    { value: 'overdue', label: 'Overdue' },
+                    { value: 'partial', label: 'Partial' }
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      className={`btn btn-sm ${viewItem.status === opt.value ? 'btn-primary' : 'btn-ghost'}`}
+                      onClick={() => handleUpdateStatus(viewItem.id, opt.value)}
+                      style={{ minWidth: '80px' }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-ghost" onClick={()=>setViewItem(null)}>Close</button>
-              <button className="btn btn-primary" onClick={() => alert(`Invoice generated for ${viewItem.customer}`)}>Print Invoice 🧾</button>
             </div>
           </div>
         </div>
@@ -256,7 +296,40 @@ export default function SalesPage() {
             </div>
             <div className="modal-footer">
               <button className="btn btn-ghost" onClick={()=>setShowNew(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={()=>{alert('Sale recorded! (Connect Supabase to persist)'); setShowNew(false);}}>Record Sale</button>
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  if (!form.customer || !form.chemical || !form.qty || !form.sellPrice) {
+                    alert('Please fill out all required fields.');
+                    return;
+                  }
+                  const newId = `TE-2024-0${salesList.length + 25}`;
+                  const qtyNum = Number(form.qty) || 0;
+                  const buyNum = Number(form.buyPrice) || 0;
+                  const sellNum = Number(form.sellPrice) || 0;
+                  const amount = qtyNum * sellNum;
+                  const profit = qtyNum * (sellNum - buyNum);
+                  const newSale = {
+                    id: newId,
+                    customer: form.customer,
+                    chemical: form.chemical,
+                    qty: qtyNum,
+                    unit: 'kg',
+                    buyPrice: buyNum,
+                    sellPrice: sellNum,
+                    amount: amount,
+                    profit: profit,
+                    date: form.date || new Date().toISOString().split('T')[0],
+                    status: 'pending'
+                  };
+                  setSalesList([newSale, ...salesList]);
+                  setShowNew(false);
+                  setForm({ customer: '', chemical: '', qty: '', buyPrice: '', sellPrice: '', date: '', notes: '' });
+                  alert('Sale recorded successfully! (Stored in-memory; connect Supabase for permanent storage)');
+                }}
+              >
+                Record Sale
+              </button>
             </div>
           </div>
         </div>
