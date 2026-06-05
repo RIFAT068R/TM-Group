@@ -511,7 +511,7 @@ export default function WorkersPage() {
       <nav className="breadcrumb mb-4">
         <Link href="/tm/dashboard">Dashboard</Link>
         <span className="breadcrumb-sep">›</span>
-        <span className="breadcrumb-current">Workers & Placements</span>
+        <span className="breadcrumb-current">Workers</span>
       </nav>
 
       {/* Google Drive OAuth Connection Banner */}
@@ -584,7 +584,7 @@ export default function WorkersPage() {
 
       <div className="page-header">
         <div>
-          <h1 className="page-title">Workers & Placements</h1>
+          <h1 className="page-title">Workers</h1>
           <p className="page-subtitle">
             {workersList.length} workers registered · {workersList.filter(w => w.status === 'working').length} currently working abroad
           </p>

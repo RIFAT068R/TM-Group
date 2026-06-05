@@ -15,7 +15,7 @@ const navItems = [
   {
     section: 'People',
     items: [
-      { href: '/tm/workers',     label: 'Workers & Placements', icon: <UserIcon /> },
+      { href: '/tm/workers',     label: 'Workers',     icon: <UserIcon /> },
       { href: '/tm/agencies',    label: 'Agencies',    icon: <BuildingIcon /> },
     ],
   },
