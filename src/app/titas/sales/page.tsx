@@ -31,7 +31,6 @@ export default function SalesPage() {
   const [viewItem, setViewItem] = useState<any | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
 
@@ -166,8 +165,7 @@ export default function SalesPage() {
 
       if (isSupabaseConfigured()) {
         const supabase = createClient()
-        await fetchSales()
-        setIsLoading(false)
+        fetchSales()
 
         channel = supabase
           .channel('titas-sales-changes')
@@ -177,8 +175,6 @@ export default function SalesPage() {
             () => { fetchSales() }
           )
           .subscribe()
-      } else {
-        setIsLoading(false)
       }
     }
 
@@ -221,7 +217,6 @@ export default function SalesPage() {
   }, [salesList, isLoaded])
 
   const handleRetry = () => {
-    setIsLoading(true)
     setFetchError(null)
     setRetryCount(c => c + 1)
   }
@@ -261,13 +256,6 @@ export default function SalesPage() {
         </div>
       )}
 
-      {/* Loading spinner */}
-      {isLoading && (
-        <div style={{ textAlign: 'center', padding: '3rem', color: '#64748B' }}>
-          <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem', animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</div>
-          <p style={{ fontSize: '0.875rem' }}>Loading sales data...</p>
-        </div>
-      )}
 
       {/* Summary */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:'1rem', marginBottom:'1.5rem' }}>
