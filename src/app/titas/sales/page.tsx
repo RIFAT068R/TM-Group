@@ -92,6 +92,37 @@ export default function SalesPage() {
     }
   }
 
+  const handleExportCSV = () => {
+    if (filtered.length === 0) {
+      alert('No sales data available to export.')
+      return
+    }
+    const headers = ['Order ID', 'Date', 'Customer', 'Chemical', 'Quantity', 'Unit', 'Buy Price (BDT)', 'Sell Price (BDT)', 'Total Amount (BDT)', 'Profit (BDT)', 'Status']
+    const rows = filtered.map(s => [
+      s.invoiceNumber || s.id,
+      s.date,
+      `"${s.customer}"`,
+      `"${s.chemical}"`,
+      s.qty,
+      s.unit,
+      s.buyPrice,
+      s.sellPrice,
+      s.amount,
+      s.profit,
+      s.status
+    ])
+    const csvContent = [headers.join(','), ...rows.map(e => e.join(','))].join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `Titas_Sales_Export_${new Date().toISOString().split('T')[0]}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   useEffect(() => {
     let channel: any
 
@@ -195,7 +226,7 @@ export default function SalesPage() {
         </div>
         <div className="page-actions">
           {isAdmin && <button className="btn btn-primary" onClick={()=>setShowNew(true)}>+ New Sale</button>}
-          <button className="btn btn-ghost">Export</button>
+          <button className="btn btn-ghost" onClick={handleExportCSV}>Export</button>
         </div>
       </div>
 
