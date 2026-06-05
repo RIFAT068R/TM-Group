@@ -27,6 +27,7 @@ export default function ChemicalsPage() {
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ name:'', sku:'', category:'Acids', unit:'kg', minStock:'', dram:'', origin:'', purchasePrice:'', sellingPrice:'' })
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
 
   const handleDeleteChemical = (id: number) => {
     if (window.confirm('Are you sure you want to delete this chemical?')) {
@@ -35,6 +36,14 @@ export default function ChemicalsPage() {
   }
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('titas_chemicals_list')
+      if (saved) {
+        try { setChemicalsList(JSON.parse(saved)); } catch (e) {}
+      }
+      setIsLoaded(true)
+    }
+
     const checkRole = async () => {
       const { createClient } = await import('@/lib/supabase/client');
       const supabase = createClient();
@@ -48,6 +57,12 @@ export default function ChemicalsPage() {
     };
     checkRole();
   }, []);
+
+  useEffect(() => {
+    if (isLoaded && typeof window !== 'undefined') {
+      localStorage.setItem('titas_chemicals_list', JSON.stringify(chemicalsList))
+    }
+  }, [chemicalsList, isLoaded])
 
   const filtered = chemicalsList.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) &&

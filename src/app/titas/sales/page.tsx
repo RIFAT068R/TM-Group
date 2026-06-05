@@ -23,6 +23,7 @@ export default function SalesPage() {
   const [form, setForm] = useState({ customer:'', chemical:'', qty:'', buyPrice:'', sellPrice:'', date:'', notes:'' })
   const [viewItem, setViewItem] = useState<typeof INITIAL_SALES[0]|null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
 
   const handleUpdateStatus = (id: string, newStatus: string) => {
     setSalesList(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s))
@@ -36,6 +37,12 @@ export default function SalesPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('titas_sales_list')
+      if (saved) {
+        try { setSalesList(JSON.parse(saved)); } catch (e) {}
+      }
+      setIsLoaded(true)
+
       const checkRole = async () => {
         const { createClient } = await import('@/lib/supabase/client');
         const supabase = createClient();
@@ -66,6 +73,12 @@ export default function SalesPage() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (isLoaded && typeof window !== 'undefined') {
+      localStorage.setItem('titas_sales_list', JSON.stringify(salesList))
+    }
+  }, [salesList, isLoaded])
 
   const filtered = salesList.filter(s =>
     (s.customer.toLowerCase().includes(search.toLowerCase()) || s.chemical.toLowerCase().includes(search.toLowerCase())) &&
