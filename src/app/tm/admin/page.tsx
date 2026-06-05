@@ -257,17 +257,56 @@ export default function AdminPanelPage() {
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 440 }}>
             <div className="modal-header">
               <h2 className="modal-title">Confirm Admin Access</h2>
-              <button className="modal-close" onClick={() => !granting && setConfirm(null)}>✕</button>
+              <button className="btn btn-ghost btn-icon" onClick={() => !granting && setConfirm(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--text-muted)' }}>✕</button>
             </div>
             <div style={{ padding: '1.25rem 0', lineHeight: 1.7 }}>
               <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
                 You are about to grant <strong>Admin</strong> access to:
               </p>
-              <div style={{ background: 'var(--surface2)', borderRadius: '10px', padding: '0.9rem 1.2rem', fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: '1rem' }}>
-                📧 {confirm.email}
+              <div style={{
+                background: 'var(--surface2)',
+                border: '1px solid var(--border)',
+                borderRadius: '12px',
+                padding: '0.875rem 1.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                marginBottom: '1.25rem'
+              }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: 'rgba(124, 58, 237, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#7C3AED',
+                  fontSize: '0.9rem',
+                  flexShrink: 0
+                }}>
+                  👤
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Email Address</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-primary)' }}>{confirm.email}</div>
+                </div>
               </div>
-              <div style={{ background: '#FEF3C7', border: '1px solid #F59E0B', borderRadius: '8px', padding: '0.75rem 1rem', fontSize: '0.8rem', color: '#92400E' }}>
-                ⚠️ <strong>Warning:</strong> This cannot be undone from this interface. To revoke, use the Supabase SQL Editor.
+              <div style={{
+                background: 'rgba(245, 158, 11, 0.04)',
+                border: '1px solid rgba(245, 158, 11, 0.25)',
+                borderRadius: '10px',
+                padding: '0.85rem 1.1rem',
+                fontSize: '0.8rem',
+                color: '#D97706',
+                display: 'flex',
+                gap: '0.6rem',
+                lineHeight: '1.5'
+              }}>
+                <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>⚠️</span>
+                <div>
+                  <strong>Warning:</strong> This cannot be undone from this interface. To revoke admin privileges in the future, you must run an update query in the Supabase SQL Editor.
+                </div>
               </div>
             </div>
             <div className="modal-footer">
