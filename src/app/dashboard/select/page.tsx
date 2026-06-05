@@ -47,21 +47,17 @@ export default function SelectModulePage() {
         backgroundColor: 'rgba(255, 255, 255, 0.8)',
         backdropFilter: 'blur(12px)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
-          <div style={{ width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img 
-              src="/logo/Logo 1.png" 
-              alt="TM Business Hub Logo" 
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
-            />
-          </div>
-          <span style={{
-            fontWeight: 800,
-            fontSize: '1rem',
-            letterSpacing: '-0.03em',
-            textTransform: 'uppercase',
-            color: '#09090B'
-          }}>TM BUSINESS HUB</span>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <img 
+            src="/logo/Logo 1.png" 
+            alt="TM Business Hub" 
+            style={{ 
+              height: '44px', 
+              width: 'auto', 
+              objectFit: 'contain',
+              display: 'block'
+            }} 
+          />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
