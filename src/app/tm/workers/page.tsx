@@ -367,15 +367,10 @@ export default function WorkersPage() {
     setWorkersList(updatedList);
   };
 
-  // Stateful Document Upload to Google Drive API with OAuth 2.0
+  // Stateful Document Upload to Google Drive API with Service Account
   const handleUploadDoc = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0] && activeWorker) {
       const file = e.target.files[0];
-
-      if (!googleTokens || !googleTokens.accessToken) {
-        alert('Google Drive is not connected. Please click the "Connect Google Drive" button at the top of the page.');
-        return;
-      }
 
       setIsUploading(true);
 
@@ -387,9 +382,9 @@ export default function WorkersPage() {
         const response = await fetch('/api/upload', {
           method: 'POST',
           headers: {
-            'x-access-token': googleTokens.accessToken,
-            'x-refresh-token': googleTokens.refreshToken || '',
-            'x-expiry-date': googleTokens.expiryDate?.toString() || '',
+            'x-access-token': googleTokens?.accessToken || '',
+            'x-refresh-token': googleTokens?.refreshToken || '',
+            'x-expiry-date': googleTokens?.expiryDate?.toString() || '',
           },
           body: formData,
         });
@@ -451,15 +446,15 @@ export default function WorkersPage() {
       return;
     }
 
-    if (docToDelete.fileId && googleTokens?.accessToken) {
+    if (docToDelete.fileId) {
       try {
         const response = await fetch('/api/delete', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-access-token': googleTokens.accessToken,
-            'x-refresh-token': googleTokens.refreshToken || '',
-            'x-expiry-date': googleTokens.expiryDate?.toString() || '',
+            'x-access-token': googleTokens?.accessToken || '',
+            'x-refresh-token': googleTokens?.refreshToken || '',
+            'x-expiry-date': googleTokens?.expiryDate?.toString() || '',
           },
           body: JSON.stringify({ fileId: docToDelete.fileId }),
         });
@@ -514,72 +509,45 @@ export default function WorkersPage() {
         <span className="breadcrumb-current">Workers</span>
       </nav>
 
-      {/* Google Drive OAuth Connection Banner */}
+      {/* Google Drive Integration Status */}
       {isAdmin && (
         <div style={{
-        background: googleTokens?.accessToken ? 'rgba(16, 185, 129, 0.04)' : 'rgba(124, 58, 237, 0.03)',
-        border: googleTokens?.accessToken ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid rgba(124, 58, 237, 0.15)',
-        borderRadius: '12px',
-        padding: '1rem 1.25rem',
-        marginBottom: '1.5rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '1rem',
-        transition: 'all 0.3s ease'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            background: googleTokens?.accessToken ? 'rgba(16, 185, 129, 0.1)' : 'rgba(124, 58, 237, 0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-          }}>
-            {googleTokens?.accessToken ? (
+          background: 'rgba(16, 185, 129, 0.04)',
+          border: '1px solid rgba(16, 185, 129, 0.2)',
+          borderRadius: '12px',
+          padding: '1rem 1.25rem',
+          marginBottom: '1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          transition: 'all 0.3s ease'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: 'rgba(16, 185, 129, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
               <span style={{ fontSize: '1.25rem' }}>🟢</span>
-            ) : (
-              <span style={{ fontSize: '1.25rem' }}>⚡</span>
-            )}
-          </div>
-          <div>
-            <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              Google Drive Cloud Storage
-              {googleTokens?.accessToken && (
+            </div>
+            <div>
+              <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                Google Drive Cloud Storage
                 <span className="badge badge-success" style={{ padding: '0.15rem 0.4rem', fontSize: '0.65rem', background: '#10B981', color: '#fff', borderRadius: '4px' }}>Connected</span>
-              )}
-            </h4>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.2rem 0 0 0' }}>
-              {googleTokens?.accessToken 
-                ? 'Documents are saved directly to your personal Google Drive account.' 
-                : 'Connect your personal Google Drive to upload worker document repositories without storage limits.'}
-            </p>
+              </h4>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.2rem 0 0 0' }}>
+                Google Drive Cloud Storage is active. All documents are securely stored in the system's Google Drive.
+              </p>
+            </div>
           </div>
         </div>
-        <div>
-          {googleTokens?.accessToken ? (
-            <button 
-              className="btn btn-ghost btn-sm" 
-              style={{ color: '#EF4444', borderColor: 'rgba(239, 68, 68, 0.2)' }}
-              onClick={handleDisconnectGoogle}
-            >
-              Disconnect
-            </button>
-          ) : (
-            <button 
-              className="btn btn-tm btn-sm"
-              onClick={handleConnectGoogle}
-              style={{ background: 'linear-gradient(135deg, #7C3AED, #4F46E5)', color: '#FFF', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}
-            >
-              Connect Google Drive
-            </button>
-          )}
-        </div>
-      </div>
       )}
 
       <div className="page-header">
@@ -864,35 +832,7 @@ export default function WorkersPage() {
                   </h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'var(--surface2)', borderRadius: '10px', padding: '1rem', border: '1px solid var(--border)' }}>
                     {/* Google Drive Status Warning */}
-                    {isAdmin && !googleTokens?.accessToken && (
-                      <div style={{
-                        background: 'rgba(239, 68, 68, 0.04)',
-                        border: '1px solid rgba(239, 68, 68, 0.15)',
-                        borderRadius: '8px',
-                        padding: '0.75rem',
-                        fontSize: '0.78rem',
-                        color: '#EF4444',
-                        marginBottom: '0.75rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.5rem'
-                      }}>
-                        <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <span>⚠️</span> Google Drive Disconnected
-                        </div>
-                        <div>
-                          Please connect Google Drive to enable document uploads and real file storage.
-                        </div>
-                        <button 
-                          className="btn btn-ghost btn-sm"
-                          style={{ color: '#EF4444', borderColor: 'rgba(239,68,68,0.2)', width: '100%', justifyContent: 'center' }}
-                          onClick={handleConnectGoogle}
-                        >
-                          Connect Google Drive
-                        </button>
-                      </div>
-                    )}
-                    {isAdmin && googleTokens?.accessToken && (
+                    {isAdmin && (
                       <div style={{
                         background: 'rgba(16, 185, 129, 0.03)',
                         border: '1px solid rgba(16, 185, 129, 0.15)',
@@ -906,13 +846,6 @@ export default function WorkersPage() {
                         justifyContent: 'space-between'
                       }}>
                         <span style={{ fontWeight: 600 }}>🟢 Connected to Google Drive</span>
-                        <button 
-                          className="btn btn-ghost btn-sm" 
-                          style={{ padding: '0.1rem 0.4rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}
-                          onClick={handleDisconnectGoogle}
-                        >
-                          Disconnect
-                        </button>
                       </div>
                     )}
 
