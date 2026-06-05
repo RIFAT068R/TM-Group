@@ -215,7 +215,7 @@ export default function TMDashboard() {
       </div>
 
       {/* Bottom Row */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem', marginBottom:'1rem' }}>
+      <div style={{ marginBottom:'1rem' }}>
         <div className="chart-card">
           <div className="chart-title">Workers by Destination</div>
           <div className="chart-subtitle">Top placement countries</div>
@@ -234,30 +234,6 @@ export default function TMDashboard() {
               </BarChart>
             </ResponsiveContainer>
           )}
-        </div>
-
-        <div className="chart-card" style={{ background:'var(--brand-accent-soft)', borderColor:'var(--brand-accent)' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:'0.6rem', marginBottom:'0.875rem' }}>
-            <div style={{ width:34, height:34, background:'var(--brand-accent)', borderRadius:'10px', display:'flex', alignItems:'center', justifyItems:'center', justifyContent:'center', color:'#222121', flexShrink:0 }}>
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/></svg>
-            </div>
-            <div>
-              <div className="chart-title" style={{ marginBottom:0 }}>AI Placement Insight</div>
-              <div style={{ fontSize:'0.7rem', color:'var(--text-muted)' }}>Powered by Gemini</div>
-            </div>
-          </div>
-          <div style={{ fontSize:'0.855rem', color:'var(--text-secondary)', lineHeight:1.75, marginBottom:'0.875rem' }}>
-            <strong>Saudi Arabia demand is rising!</strong> 12 new demand letters received this month. Consider pre-qualifying 20+ workers for faster processing.
-          </div>
-          <div style={{ fontSize:'0.84rem', color:'var(--danger)', lineHeight:1.7, marginBottom:'0.875rem' }}>
-            <strong>3 worker visas</strong> expire within 30 days — immediate renewal required.
-          </div>
-          <div style={{ fontSize:'0.82rem', color:'var(--text-muted)', lineHeight:1.6, marginBottom:'1rem' }}>
-            <strong>5 medical certificates</strong> need renewal this month.
-          </div>
-          <Link href="/tm/ai" className="btn btn-tm btn-sm" style={{ width:'100%', justifyContent:'center', background:'var(--brand-accent)', color:'#222121', borderColor:'var(--brand-accent)' }}>
-            Get Full AI Report →
-          </Link>
         </div>
       </div>
 
