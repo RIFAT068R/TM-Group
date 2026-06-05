@@ -32,7 +32,6 @@ export default function SelectModulePage() {
         zIndex: 1,
       }} />
 
-      {/* Sleek top header */}
       <header style={{
         position: 'absolute',
         top: 0,
@@ -41,7 +40,7 @@ export default function SelectModulePage() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '1.5rem 2.5rem',
+        padding: '0 2.5rem',
         borderBottom: '1px solid #E4E4E7',
         zIndex: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.8)',
@@ -52,7 +51,7 @@ export default function SelectModulePage() {
             src="/logo/Logo 1.png" 
             alt="TM Business Hub" 
             style={{ 
-              height: '44px', 
+              height: '90px', 
               width: 'auto', 
               objectFit: 'contain',
               display: 'block'
@@ -79,7 +78,7 @@ export default function SelectModulePage() {
       <div style={{
         textAlign: 'center',
         marginBottom: '3.5rem',
-        marginTop: '6rem',
+        marginTop: '8rem',
         position: 'relative',
         zIndex: 5,
         opacity: mounted ? 1 : 0,

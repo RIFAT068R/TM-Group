@@ -30,12 +30,11 @@ export default function LandingPage() {
         zIndex: 1,
       }} />
 
-      {/* Sleek top header */}
       <header style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '1.5rem 2.5rem',
+        padding: '0 2.5rem',
         borderBottom: '1px solid #E5E4E3',
         zIndex: 10,
         position: 'relative',
@@ -47,7 +46,7 @@ export default function LandingPage() {
             src="/logo/Logo 1.png" 
             alt="TM Business Hub" 
             style={{ 
-              height: '44px', 
+              height: '90px', 
               width: 'auto', 
               objectFit: 'contain',
               display: 'block'
