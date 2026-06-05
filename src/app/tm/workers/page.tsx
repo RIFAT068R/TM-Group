@@ -197,7 +197,7 @@ export default function WorkersPage() {
   const [previewDoc, setPreviewDoc] = useState<any | null>(null)
 
   // Google OAuth Tokens State
-  const [googleTokens, setGoogleTokens] = useState<any | null>(null)
+  const [isDriveConnected, setIsDriveConnected] = useState<boolean>(false)
 
   // Load state from Supabase on client mount
   useEffect(() => {
@@ -381,14 +381,17 @@ export default function WorkersPage() {
 
       loadWorkersFromSupabase();
 
-      const tokensStr = localStorage.getItem('google_drive_tokens');
-      if (tokensStr) {
+      const checkDriveConnection = async () => {
         try {
-          setGoogleTokens(JSON.parse(tokensStr));
+          const { createClient } = await import('@/lib/supabase/client');
+          const supabase = createClient();
+          const { data } = await supabase.from('google_drive_tokens').select('id').limit(1);
+          setIsDriveConnected(data && data.length > 0 ? true : false);
         } catch (e) {
-          console.error('Failed to parse google_drive_tokens:', e);
+          console.error('Failed to check google drive connection:', e);
         }
-      }
+      };
+      checkDriveConnection();
 
       const params = new URLSearchParams(window.location.search);
       if (params.get('add') === 'true') {
@@ -413,12 +416,18 @@ export default function WorkersPage() {
     window.location.href = '/api/auth/google/login';
   };
 
-  const handleDisconnectGoogle = () => {
+  const handleDisconnectGoogle = async () => {
     if (confirm('Are you sure you want to disconnect Google Drive? Document uploads will require reconnection.')) {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('google_drive_tokens');
+      try {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        await supabase.from('google_drive_tokens').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        setIsDriveConnected(false);
+        alert('Google Drive disconnected successfully.');
+      } catch (err: any) {
+        console.error('Failed to disconnect:', err);
+        alert('Failed to disconnect Google Drive: ' + err.message);
       }
-      setGoogleTokens(null);
     }
   };
 
@@ -644,11 +653,6 @@ export default function WorkersPage() {
       try {
         const response = await fetch('/api/upload', {
           method: 'POST',
-          headers: {
-            'x-access-token': googleTokens?.accessToken || '',
-            'x-refresh-token': googleTokens?.refreshToken || '',
-            'x-expiry-date': googleTokens?.expiryDate?.toString() || '',
-          },
           body: formData,
         });
 
@@ -656,16 +660,6 @@ export default function WorkersPage() {
 
         if (!response.ok || !data.success) {
           throw new Error(data.error || 'Failed to upload document');
-        }
-
-        // If backend refreshed the tokens, update client state & localStorage
-        if (data.newTokens) {
-          const updatedTokens = {
-            ...googleTokens,
-            ...data.newTokens
-          };
-          localStorage.setItem('google_drive_tokens', JSON.stringify(updatedTokens));
-          setGoogleTokens(updatedTokens);
         }
 
         const newDoc = {
@@ -734,9 +728,6 @@ export default function WorkersPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-access-token': googleTokens?.accessToken || '',
-            'x-refresh-token': googleTokens?.refreshToken || '',
-            'x-expiry-date': googleTokens?.expiryDate?.toString() || '',
           },
           body: JSON.stringify({ fileId: docToDelete.fileId }),
         });
@@ -807,43 +798,97 @@ export default function WorkersPage() {
 
       {/* Google Drive Integration Status */}
       {isAdmin && (
-        <div style={{
-          background: 'rgba(16, 185, 129, 0.04)',
-          border: '1px solid rgba(16, 185, 129, 0.2)',
-          borderRadius: '12px',
-          padding: '1rem 1.25rem',
-          marginBottom: '1.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '1rem',
-          transition: 'all 0.3s ease'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              background: 'rgba(16, 185, 129, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0
-            }}>
-              <span style={{ fontSize: '1.25rem' }}>🟢</span>
+        isDriveConnected ? (
+          <div style={{
+            background: 'rgba(16, 185, 129, 0.04)',
+            border: '1px solid rgba(16, 185, 129, 0.2)',
+            borderRadius: '12px',
+            padding: '1rem 1.25rem',
+            marginBottom: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '1rem',
+            transition: 'all 0.3s ease'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                background: 'rgba(16, 185, 129, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <span style={{ fontSize: '1.25rem' }}>🟢</span>
+              </div>
+              <div>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  Google Drive Cloud Storage
+                  <span className="badge badge-success" style={{ padding: '0.15rem 0.4rem', fontSize: '0.65rem', background: '#10B981', color: '#fff', borderRadius: '4px' }}>Connected</span>
+                </h4>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.2rem 0 0 0' }}>
+                  Google Drive Cloud Storage is active. All documents are securely stored in the system's Google Drive.
+                </p>
+              </div>
             </div>
-            <div>
-              <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                Google Drive Cloud Storage
-                <span className="badge badge-success" style={{ padding: '0.15rem 0.4rem', fontSize: '0.65rem', background: '#10B981', color: '#fff', borderRadius: '4px' }}>Connected</span>
-              </h4>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.2rem 0 0 0' }}>
-                Google Drive Cloud Storage is active. All documents are securely stored in the system's Google Drive.
-              </p>
-            </div>
+            <button 
+              className="btn btn-ghost btn-sm" 
+              style={{ color: '#EF4444', fontWeight: 600, border: '1px solid rgba(239, 68, 68, 0.2)', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer' }} 
+              onClick={handleDisconnectGoogle}
+            >
+              Disconnect Drive
+            </button>
           </div>
-        </div>
+        ) : (
+          <div style={{
+            background: 'rgba(239, 68, 68, 0.04)',
+            border: '1px solid rgba(239, 68, 68, 0.2)',
+            borderRadius: '12px',
+            padding: '1rem 1.25rem',
+            marginBottom: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '1rem',
+            transition: 'all 0.3s ease'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                background: 'rgba(239, 68, 68, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <span style={{ fontSize: '1.25rem' }}>🔴</span>
+              </div>
+              <div>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  Google Drive Cloud Storage
+                  <span className="badge" style={{ padding: '0.15rem 0.4rem', fontSize: '0.65rem', background: '#EF4444', color: '#fff', borderRadius: '4px' }}>Disconnected</span>
+                </h4>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.2rem 0 0 0' }}>
+                  Google Drive is not connected. Document uploads will fail. Please connect a personal Google Account.
+                </p>
+              </div>
+            </div>
+            <button 
+              className="btn btn-tm btn-sm" 
+              style={{ fontWeight: 600, padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer' }} 
+              onClick={handleConnectGoogle}
+            >
+              Connect Google Drive
+            </button>
+          </div>
+        )
       )}
 
       <div className="page-header">
@@ -1128,7 +1173,7 @@ export default function WorkersPage() {
                   </h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'var(--surface2)', borderRadius: '10px', padding: '1rem', border: '1px solid var(--border)' }}>
                     {/* Google Drive Status Warning */}
-                    {isAdmin && (
+                    {isDriveConnected ? (
                       <div style={{
                         background: 'rgba(16, 185, 129, 0.03)',
                         border: '1px solid rgba(16, 185, 129, 0.15)',
@@ -1142,6 +1187,21 @@ export default function WorkersPage() {
                         justifyContent: 'space-between'
                       }}>
                         <span style={{ fontWeight: 600 }}>🟢 Connected to Google Drive</span>
+                      </div>
+                    ) : (
+                      <div style={{
+                        background: 'rgba(239, 68, 68, 0.03)',
+                        border: '1px solid rgba(239, 68, 68, 0.15)',
+                        borderRadius: '8px',
+                        padding: '0.6rem 0.75rem',
+                        fontSize: '0.75rem',
+                        color: '#EF4444',
+                        marginBottom: '0.75rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      }}>
+                        <span style={{ fontWeight: 600 }}>🔴 Google Drive Disconnected</span>
                       </div>
                     )}
 

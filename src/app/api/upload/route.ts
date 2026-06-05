@@ -1,5 +1,5 @@
-import { google } from 'googleapis';
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedDriveClient } from '@/lib/google-drive';
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,26 +11,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    const saEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const saPrivateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY;
     const folderId = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID;
 
-    if (!saEmail || !saPrivateKey) {
+    // Get authenticated Google Drive API client using personal OAuth credentials
+    let drive;
+    try {
+      drive = await getAuthenticatedDriveClient();
+    } catch (authError: any) {
+      console.error('Google Drive Auth Failure:', authError);
       return NextResponse.json({
-        error: 'Google Service Account credentials are not configured in .env.local.'
-      }, { status: 500 });
+        error: authError.message || 'Google Drive is not connected or authorization has expired.'
+      }, { status: 401 });
     }
-
-    const rawKey = saPrivateKey.replace(/\\n/g, '\n');
-
-    const jwtClient = new google.auth.JWT({
-      email: saEmail,
-      key: rawKey,
-      scopes: ['https://www.googleapis.com/auth/drive']
-    });
-
-    await jwtClient.authorize();
-    const drive = google.drive({ version: 'v3', auth: jwtClient });
 
     // Read file bytes into Buffer
     const arrayBuffer = await file.arrayBuffer();

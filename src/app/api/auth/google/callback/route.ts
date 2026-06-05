@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     if (!clientId || !clientSecret) {
       return NextResponse.json({
-        error: 'Google OAuth credentials not configured in .env.local'
+        error: 'Google OAuth credentials not configured in environment variables.'
       }, { status: 500 });
     }
 
@@ -37,105 +37,63 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to retrieve access token' }, { status: 400 });
     }
 
-    // Build the token object we will store in localStorage
-    const savedTokens = {
-      accessToken: tokens.access_token,
-      refreshToken: tokens.refresh_token, // might be undefined if prompt=consent is missing (but we enforce it!)
-      expiryDate: tokens.expiry_date,
-    };
+    // Connect to Supabase using service role key to store globally
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    // Return HTML page that writes to localStorage and redirects back to /tm/workers
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Google Drive Authorized</title>
-          <style>
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-              background-color: #0B0A0E;
-              color: #F8FAFC;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              height: 100vh;
-              margin: 0;
-            }
-            .card {
-              background: rgba(255, 255, 255, 0.03);
-              border: 1px solid rgba(255, 255, 255, 0.08);
-              border-radius: 16px;
-              padding: 2.5rem;
-              text-align: center;
-              box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-              backdrop-filter: blur(10px);
-              max-width: 400px;
-            }
-            h1 {
-              color: #06B6D4;
-              font-size: 1.5rem;
-              margin-bottom: 0.5rem;
-            }
-            p {
-              color: #94A3B8;
-              font-size: 0.9rem;
-              margin-bottom: 1.5rem;
-            }
-            .spinner {
-              border: 3px solid rgba(6, 182, 212, 0.1);
-              border-top: 3px solid #06B6D4;
-              border-radius: 50%;
-              width: 24px;
-              height: 24px;
-              animation: spin 1s linear infinite;
-              margin: 0 auto;
-            }
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          </style>
-          <script>
-            try {
-              const tokens = ${JSON.stringify(savedTokens)};
-              
-              // Only overwrite the refresh token if one was returned. 
-              // Google sometimes only returns the refresh token on the first consent flow.
-              if (!tokens.refreshToken) {
-                const existing = localStorage.getItem('google_drive_tokens');
-                if (existing) {
-                  const existingParsed = JSON.parse(existing);
-                  if (existingParsed.refreshToken) {
-                    tokens.refreshToken = existingParsed.refreshToken;
-                  }
-                }
-              }
-              
-              localStorage.setItem('google_drive_tokens', JSON.stringify(tokens));
-              
-              setTimeout(() => {
-                window.location.href = '/tm/workers';
-              }, 1000);
-            } catch (err) {
-              console.error('Failed to store tokens:', err);
-              document.body.innerHTML = '<h1>Authorization Failed</h1><p>Could not store tokens in your browser.</p>';
-            }
-          </script>
-        </head>
-        <body>
-          <div class="card">
-            <h1>Authorization Successful!</h1>
-            <p>Your personal Google Drive has been connected. Redirecting you back to TM Overseas...</p>
-            <div class="spinner"></div>
-          </div>
-        </body>
-      </html>
-    `;
+    // Retrieve existing tokens from the database to avoid losing refresh_token
+    const { data: existingToken, error: selectError } = await supabase
+      .from('google_drive_tokens')
+      .select('*')
+      .limit(1)
+      .maybeSingle();
 
-    return new NextResponse(html, {
-      headers: { 'Content-Type': 'text/html' },
-    });
+    if (selectError) {
+      console.error('Error selecting existing google_drive_tokens:', selectError);
+    }
+
+    const finalRefreshToken = tokens.refresh_token || existingToken?.refresh_token || null;
+    const finalExpiryDate = tokens.expiry_date || null;
+
+    if (existingToken) {
+      // Update existing record
+      const { error: updateError } = await supabase
+        .from('google_drive_tokens')
+        .update({
+          access_token: tokens.access_token,
+          refresh_token: finalRefreshToken,
+          expiry_date: finalExpiryDate,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existingToken.id);
+
+      if (updateError) {
+        throw new Error(`Failed to update google_drive_tokens: ${updateError.message}`);
+      }
+    } else {
+      // Insert new record
+      const { error: insertError } = await supabase
+        .from('google_drive_tokens')
+        .insert({
+          access_token: tokens.access_token,
+          refresh_token: finalRefreshToken,
+          expiry_date: finalExpiryDate,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (insertError) {
+        throw new Error(`Failed to insert google_drive_tokens: ${insertError.message}`);
+      }
+    }
+
+    console.log('Google Drive tokens stored globally in database. Redirecting to workers page.');
+
+    // Direct redirect back to TM workers directory
+    return NextResponse.redirect(new URL('/tm/workers', req.url));
+
   } catch (error: any) {
     console.error('Google OAuth Callback Error:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
