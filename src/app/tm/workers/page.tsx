@@ -155,7 +155,6 @@ export default function WorkersPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [showAdd, setShowAdd] = useState(false)
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table')
   const [form, setForm] = useState({ 
     name: '', 
     passport: '', 
@@ -615,155 +614,85 @@ export default function WorkersPage() {
           ]}
         />
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-          {/* Toggle View Mode Buttons */}
-          <div style={{ display: 'flex', gap: '0.25rem', background: 'var(--surface2)', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-            <button
-              type="button"
-              onClick={() => setViewMode('table')}
-              className={`btn btn-sm ${viewMode === 'table' ? 'btn-tm' : 'btn-ghost'}`}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.35rem 0.75rem', borderRadius: '6px' }}
-            >
-              📋 Table
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('cards')}
-              className={`btn btn-sm ${viewMode === 'cards' ? 'btn-tm' : 'btn-ghost'}`}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.35rem 0.75rem', borderRadius: '6px' }}
-            >
-              🎴 Cards
-            </button>
-          </div>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{filtered.length} workers</div>
         </div>
       </div>
 
-      {viewMode === 'table' ? (
-        /* 📋 TABLE VIEW: Scannable Master Table showing Demographics + Job Placement Contracts */
-        <div className="data-table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Worker</th>
-                <th>Passport</th>
-                <th>Country</th>
-                <th>Agency</th>
-                <th>Position</th>
-                <th>Salary</th>
-                <th>Fee (৳)</th>
-                <th>Status</th>
-                <th>Visa Expiry</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(w => (
-                <tr key={w.id}>
-                  <td><span className="num" style={{ color: '#A78BFA', fontWeight: 600, fontSize: '0.8rem' }}>{w.id}</span></td>
-                  <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{w.name}</td>
-                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem' }}>{w.passport}</td>
-                  <td>{w.country}</td>
-                  <td style={{ fontSize: '0.82rem' }}>{w.agency || '—'}</td>
-                  <td style={{ fontSize: '0.82rem' }}>{w.position || '—'}</td>
-                  <td className="num" style={{ fontSize: '0.82rem', color: '#10B981' }}>{w.salary || '—'}</td>
-                  <td className="num" style={{ fontWeight: 600 }}>{w.fee ? `৳${w.fee.toLocaleString()}` : '—'}</td>
-                  <td>
-                    <span className={`badge ${statusColors[w.status]?.cls || 'badge-muted'}`}>
+      <div className="data-table-wrap">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Worker Details</th>
+              <th>Passport Info</th>
+              <th>Destination</th>
+              <th>Job Placement</th>
+              <th>Financials</th>
+              <th>Status & Dates</th>
+              <th style={{ textAlign: 'right' }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(w => (
+              <tr key={w.id}>
+                <td><span className="num" style={{ color: '#A78BFA', fontWeight: 600, fontSize: '0.8rem' }}>{w.id}</span></td>
+                <td>
+                  <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9rem' }}>{w.name}</div>
+                  <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>📞 {w.phone}</div>
+                  <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>🎂 DOB: {w.dob}</div>
+                </td>
+                <td>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: 'var(--text-primary)', fontWeight: 600 }}>{w.passport}</div>
+                  <div style={{ fontSize: '0.76rem', color: isExpiringSoon(w.passportExpiry) ? '#EF4444' : 'var(--text-muted)', marginTop: '0.15rem' }}>
+                    📅 Exp: {w.passportExpiry} {isExpiringSoon(w.passportExpiry) ? '⚠️' : ''}
+                  </div>
+                </td>
+                <td>
+                  <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{w.country}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>🏷️ {w.category}</div>
+                </td>
+                <td>
+                  <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{w.position || '—'}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>🏢 {w.agency || '—'}</div>
+                </td>
+                <td>
+                  <div className="num" style={{ fontWeight: 700, color: '#10B981', fontSize: '0.88rem' }}>{w.salary || '—'}</div>
+                  <div className="num" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+                    Fee: {w.fee ? `৳${w.fee.toLocaleString()}` : '—'}
+                  </div>
+                </td>
+                <td>
+                  <div style={{ marginBottom: '0.25rem' }}>
+                    <span className={`badge ${statusColors[w.status]?.cls || 'badge-muted'}`} style={{ fontSize: '0.7rem' }}>
                       {statusColors[w.status]?.label || w.status}
                     </span>
-                  </td>
-                  <td style={{ fontSize: '0.8rem', color: isExpiringSoon(w.visaExpiry) ? '#EF4444' : 'var(--text-muted)' }}>
-                    {w.visaExpiry || '—'} {isExpiringSoon(w.visaExpiry) ? '⚠️' : ''}
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.3rem' }}>
-                      <button className="btn btn-ghost btn-sm" onClick={() => handleViewProfile(w)}>View</button>
+                  </div>
+                  {w.departureDate && (
+                    <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>
+                      ✈️ Dep: {w.departureDate}
                     </div>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={11} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                    No workers match your search criteria.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        /* 🎴 CARD VIEW: Graphical Cards Grid */
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
-          {filtered.map(w => (
-            <div 
-              key={w.id} 
-              className="card glass-hover" 
-              style={{ borderColor: 'rgba(124,58,237,0.12)', cursor: 'pointer' }}
-              onClick={() => handleViewProfile(w)}
-            >
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
-                  <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg, var(--brand-accent), #4CD1D6)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#fff', fontSize: '1.1rem', flexShrink: 0 }}>
-                    {w.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>{w.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{w.passport}</div>
-                  </div>
-                </div>
-                <span className={`badge ${statusColors[w.status]?.cls || 'badge-muted'}`}>{statusColors[w.status]?.label || w.status}</span>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 1rem', fontSize: '0.8rem', marginBottom: '1rem' }}>
-                <div><span style={{ color: 'var(--text-muted)' }}>Country:</span> <strong style={{ color: 'var(--text-primary)' }}>{w.country}</strong></div>
-                <div><span style={{ color: 'var(--text-muted)' }}>Category:</span> <strong style={{ color: 'var(--text-primary)' }}>{w.category}</strong></div>
-                <div><span style={{ color: 'var(--text-muted)' }}>Phone:</span> <span style={{ color: 'var(--text-secondary)' }}>{w.phone}</span></div>
-                <div>
-                  <span style={{ color: 'var(--text-muted)' }}>Passport Exp:</span>{' '}
-                  <strong style={{ color: isExpiringSoon(w.passportExpiry) ? '#EF4444' : 'var(--text-primary)' }}>
-                    {w.passportExpiry} {isExpiringSoon(w.passportExpiry) ? '⚠️' : ''}
-                  </strong>
-                </div>
-                {w.position && (
-                  <div style={{ gridColumn: '1 / -1', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '0.4rem' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Job Placement:</span>{' '}
-                    <strong style={{ color: 'var(--text-primary)' }}>{w.position} ({w.salary})</strong>
-                  </div>
-                )}
-                <div style={{ gridColumn: '1 / -1', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '0.4rem', display: 'flex', gap: '0.25rem' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Agency:</span>{' '}
-                  <strong style={{ color: 'var(--text-primary)' }}>{w.agency || 'Not Assigned'}</strong>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button 
-                  className="btn btn-ghost btn-sm" 
-                  style={{ flex: 1, justifyContent: 'center' }}
-                  onClick={(e) => { e.stopPropagation(); handleViewProfile(w); }}
-                >
-                  View Profile & Docs
-                </button>
-                {isAdmin && (
-                  <button 
-                    className="btn btn-ghost btn-sm"
-                    onClick={(e) => { e.stopPropagation(); handleViewProfile(w); }}
-                  >
-                    ✏️
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-          {filtered.length === 0 && (
-            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-              No workers match your search criteria.
-            </div>
-          )}
-        </div>
-      )}
+                  )}
+                  {w.visaExpiry && (
+                    <div style={{ fontSize: '0.73rem', color: isExpiringSoon(w.visaExpiry) ? '#EF4444' : 'var(--text-muted)', marginTop: '0.1rem' }}>
+                      🛂 Visa Exp: {w.visaExpiry} {isExpiringSoon(w.visaExpiry) ? '⚠️' : ''}
+                    </div>
+                  )}
+                </td>
+                <td style={{ textAlign: 'right' }}>
+                  <button className="btn btn-ghost btn-sm" onClick={() => handleViewProfile(w)}>View Details & Docs</button>
+                </td>
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                  No workers match your search criteria.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Right side Detail Drawer overlay */}
       {activeWorker && (
