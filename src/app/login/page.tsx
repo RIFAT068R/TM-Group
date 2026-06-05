@@ -15,9 +15,6 @@ function LoginForm({ mode, setMode, module }: LoginFormProps) {
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/dashboard'
 
-  // Signup UI Stage: 'initial' (Screen 1) | 'email' (Screen 2)
-  const [signupMethod, setSignupMethod]       = useState<'initial' | 'email'>('initial')
-  const [name, setName]                       = useState('')
   const [email, setEmail]                     = useState('')
   const [password, setPassword]               = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -28,15 +25,14 @@ function LoginForm({ mode, setMode, module }: LoginFormProps) {
 
   const supabase = createClient()
 
-  // Reset form fields on mode/signup stage change
+  // Reset form fields when mode changes
   useEffect(() => {
     setError('')
     setSuccess('')
-    setName('')
     setEmail('')
     setPassword('')
     setConfirmPassword('')
-  }, [mode, signupMethod])
+  }, [mode])
 
   async function handleGoogleAuth() {
     setLoading(true)
@@ -78,9 +74,6 @@ function LoginForm({ mode, setMode, module }: LoginFormProps) {
         password,
         options: {
           emailRedirectTo: `${origin}/auth/callback`,
-          data: {
-            full_name: name,
-          }
         }
       })
 
@@ -135,353 +128,165 @@ function LoginForm({ mode, setMode, module }: LoginFormProps) {
     </svg>
   )
 
-  // Envelope SVG Icon Markup
-  const envelopeIcon = (
-    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-    </svg>
-  )
+  return (
+    <form className={styles.form} onSubmit={handleSubmit} noValidate>
+      {error && (
+        <div className={styles.errorBanner} role="alert" aria-live="assertive">
+          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {error}
+        </div>
+      )}
 
-  // RENDER SIGNUP STAGE 1 (Google & Email Select)
-  if (mode === 'signup' && signupMethod === 'initial') {
-    return (
-      <div>
-        {error && (
-          <div className={styles.errorBanner} role="alert" aria-live="assertive" style={{ marginBottom: '1.25rem' }}>
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            {error}
-          </div>
-        )}
+      {success && (
+        <div className={styles.successBanner} role="alert" aria-live="polite">
+          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {success}
+        </div>
+      )}
 
-        <button 
-          type="button" 
-          className={`${styles.socialBtn} ${styles.googleBtn}`}
-          onClick={handleGoogleAuth}
-          disabled={loading}
-        >
-          {googleIcon}
-          Sign up with Google
-        </button>
-
-        <button 
-          type="button" 
-          className={`${styles.socialBtn} ${styles.emailBtn}`}
-          onClick={() => setSignupMethod('email')}
-          disabled={loading}
-        >
-          {envelopeIcon}
-          Sign up with Email
-        </button>
-
-        <p className={styles.toggleText}>
-          Already have an account?{' '}
-          <button
-            type="button"
-            className={styles.toggleTextLink}
-            onClick={() => setMode('login')}
+      {/* Render Google Button at the Top (Stage 1 / Screen Style) */}
+      {!success && mode !== 'forgot' && (
+        <>
+          <button 
+            type="button" 
+            className={styles.googleBtn}
+            onClick={handleGoogleAuth}
+            disabled={loading}
           >
-            Log In
+            {googleIcon}
+            {mode === 'signup' ? 'Sign up with Google' : 'Sign in with Google'}
           </button>
-        </p>
+          
+          <div className={styles.divider}>or</div>
+        </>
+      )}
 
-        <p className={styles.termsText}>
-          By signing up to create an account I accept Company's{' '}
-          <a href="#" onClick={e => e.preventDefault()}>Terms of Use</a> and{' '}
-          <a href="#" onClick={e => e.preventDefault()}>Privacy Policy</a>.
-        </p>
-      </div>
-    )
-  }
-
-  // RENDER SIGNUP STAGE 2 (Email Registration Form)
-  if (mode === 'signup' && signupMethod === 'email') {
-    return (
-      <form onSubmit={handleSubmit} noValidate>
-        {error && (
-          <div className={styles.errorBanner} role="alert" aria-live="assertive" style={{ marginBottom: '1.25rem' }}>
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            {error}
+      {!success && (
+        <>
+          {/* Email Address Input */}
+          <div className={styles.formGroup}>
+            <label htmlFor="email" className={styles.label}>Email address</label>
+            <input
+              id="email"
+              type="email"
+              className={styles.input}
+              placeholder="Email address"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+              autoFocus
+            />
           </div>
-        )}
 
-        {success && (
-          <div className={styles.successBanner} role="alert" aria-live="polite" style={{ marginBottom: '1.25rem' }}>
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {success}
-          </div>
-        )}
-
-        {!success && (
-          <>
-            {/* Name Input */}
-            <div className={styles.floatingField}>
-              <input
-                id="name"
-                type="text"
-                className={styles.floatingInput}
-                placeholder=" "
-                value={name}
-                onChange={e => setName(e.target.value)}
-                required
-                autoComplete="name"
-                autoFocus
-              />
-              <label htmlFor="name" className={styles.floatingLabel}>Name</label>
-            </div>
-
-            {/* Email Input */}
-            <div className={styles.floatingField}>
-              <input
-                id="email"
-                type="email"
-                className={styles.floatingInput}
-                placeholder=" "
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
-              <label htmlFor="email" className={styles.floatingLabel}>Email</label>
-            </div>
-
-            {/* Password Input */}
-            <div className={styles.floatingField}>
-              <input
-                id="password"
-                type={showPass ? 'text' : 'password'}
-                className={`${styles.floatingInput} ${styles.passwordInput}`}
-                placeholder=" "
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                autoComplete="new-password"
-              />
-              <label htmlFor="password" className={styles.floatingLabel}>Password</label>
-              <button
-                type="button"
-                className={styles.passwordEye}
-                onClick={() => setShowPass(p => !p)}
-                aria-label={showPass ? 'Hide password' : 'Show password'}
-                tabIndex={-1}
-              >
-                {showPass ? (
-                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"/></svg>
-                ) : (
-                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          {/* Password Input (if not forgot password mode) */}
+          {mode !== 'forgot' && (
+            <div className={styles.formGroup}>
+              <div className={styles.labelRow}>
+                <label htmlFor="password" className={styles.label}>Password</label>
+                {mode === 'login' && (
+                  <button 
+                    type="button" 
+                    className={styles.forgotLink}
+                    onClick={() => setMode('forgot')}
+                  >
+                    Forgot password?
+                  </button>
                 )}
-              </button>
+              </div>
+              <div className={styles.passwordWrap}>
+                <input
+                  id="password"
+                  type={showPass ? 'text' : 'password'}
+                  className={`${styles.input} ${styles.passwordInput}`}
+                  placeholder="Password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                />
+                <button
+                  type="button"
+                  className={styles.passwordEye}
+                  onClick={() => setShowPass(p => !p)}
+                  aria-label={showPass ? 'Hide password' : 'Show password'}
+                  tabIndex={-1}
+                >
+                  {showPass ? (
+                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"/></svg>
+                  ) : (
+                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  )}
+                </button>
+              </div>
             </div>
+          )}
 
-            {/* Confirm Password Input */}
-            <div className={styles.floatingField}>
+          {/* Repeat Password Input (if signup mode) */}
+          {mode === 'signup' && (
+            <div className={styles.formGroup}>
+              <label htmlFor="confirmPassword" className={styles.label}>Repeat password</label>
               <input
                 id="confirmPassword"
                 type={showPass ? 'text' : 'password'}
-                className={`${styles.floatingInput} ${styles.passwordInput}`}
-                placeholder=" "
+                className={`${styles.input} ${styles.passwordInput}`}
+                placeholder="Repeat password"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 required
                 autoComplete="new-password"
               />
-              <label htmlFor="confirmPassword" className={styles.floatingLabel}>Confirm Password</label>
             </div>
-
-            <button
-              type="submit"
-              className={styles.primaryBtn}
-              disabled={loading || !name || !email || !password || !confirmPassword}
-            >
-              {loading ? (
-                <>
-                  <span className={styles.spinner} aria-hidden />
-                  Processing…
-                </>
-              ) : (
-                'Sign Up'
-              )}
-            </button>
-          </>
-        )}
-
-        <p className={styles.toggleText}>
-          Already have an account?{' '}
-          <button
-            type="button"
-            className={styles.toggleTextLink}
-            onClick={() => setMode('login')}
-          >
-            Log In
-          </button>
-        </p>
-
-        {!success && (
-          <>
-            <div className={styles.divider}>or</div>
-
-            <button 
-              type="button" 
-              className={`${styles.socialBtn} ${styles.googleBtn}`}
-              onClick={handleGoogleAuth}
-              disabled={loading}
-            >
-              {googleIcon}
-              Sign up with Google
-            </button>
-          </>
-        )}
-
-        <p className={styles.termsText}>
-          By signing up to create an account I accept Company's{' '}
-          <a href="#" onClick={e => e.preventDefault()}>Terms of Use</a> and{' '}
-          <a href="#" onClick={e => e.preventDefault()}>Privacy Policy</a>.
-        </p>
-      </form>
-    )
-  }
-
-  // RENDER SIGN IN & FORGOT PASSWORD MODES
-  return (
-    <div>
-      {/* Tabs */}
-      <div className={styles.tabs}>
-        <button
-          type="button"
-          className={`${styles.tab} ${mode === 'login' ? styles.tabActive : ''}`}
-          onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
-        >
-          Sign In
-        </button>
-        <button
-          type="button"
-          className={`${styles.tab} ${mode === 'signup' ? styles.tabActive : ''}`}
-          onClick={() => { setMode('signup'); setError(''); setSuccess(''); setSignupMethod('initial'); }}
-        >
-          Sign Up
-        </button>
-        <button
-          type="button"
-          className={`${styles.tab} ${mode === 'forgot' ? styles.tabActive : ''}`}
-          onClick={() => { setMode('forgot'); setError(''); setSuccess(''); }}
-        >
-          Forgot Password
-        </button>
-      </div>
-
-      <form className={styles.form} onSubmit={handleSubmit} noValidate>
-        {error && (
-          <div className={styles.errorBanner} role="alert" aria-live="assertive">
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className={styles.successBanner} role="alert" aria-live="polite">
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {success}
-          </div>
-        )}
-
-        {/* Email Input */}
-        <div className={styles.floatingField}>
-          <input
-            id="email"
-            type="email"
-            className={styles.floatingInput}
-            placeholder=" "
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-            autoFocus
-          />
-          <label htmlFor="email" className={styles.floatingLabel}>Email Address</label>
-        </div>
-
-        {mode !== 'forgot' && (
-          /* Password Input */
-          <div className={styles.floatingField}>
-            <input
-              id="password"
-              type={showPass ? 'text' : 'password'}
-              className={`${styles.floatingInput} ${styles.passwordInput}`}
-              placeholder=" "
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
-            <label htmlFor="password" className={styles.floatingLabel}>Password</label>
-            <button
-              type="button"
-              className={styles.passwordEye}
-              onClick={() => setShowPass(p => !p)}
-              aria-label={showPass ? 'Hide password' : 'Show password'}
-              tabIndex={-1}
-            >
-              {showPass ? (
-                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"/></svg>
-              ) : (
-                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              )}
-            </button>
-          </div>
-        )}
-
-        <button
-          type="submit"
-          className={styles.primaryBtn}
-          disabled={loading || !email || (mode !== 'forgot' && !password)}
-        >
-          {loading ? (
-            <>
-              <span className={styles.spinner} aria-hidden />
-              Processing…
-            </>
-          ) : mode === 'forgot' ? (
-            'Send Reset Link'
-          ) : (
-            'Sign In'
           )}
-        </button>
 
-        {mode === 'login' && (
-          <div style={{ textAlign: 'center', marginTop: '0.25rem' }}>
-            <button
-              type="button"
-              className={styles.toggleViewLink}
-              onClick={() => { setMode('forgot'); }}
-            >
-              Forgot Password?
-            </button>
-          </div>
-        )}
+          <button
+            type="submit"
+            className={styles.primaryBtn}
+            disabled={loading || !email || (mode !== 'forgot' && !password) || (mode === 'signup' && !confirmPassword)}
+          >
+            {loading ? (
+              <>
+                <span className={styles.spinner} aria-hidden />
+                Processing…
+              </>
+            ) : mode === 'signup' ? (
+              'Sign up'
+            ) : mode === 'forgot' ? (
+              'Send Reset Link'
+            ) : (
+              'Sign in'
+            )}
+          </button>
+        </>
+      )}
 
-        {mode !== 'login' && (
-          <p className={styles.toggleText}>
+      {/* Footer Switcher Links */}
+      <p className={styles.footerText}>
+        {mode === 'signup' ? (
+          <>
             Already have an account?{' '}
-            <button
-              type="button"
-              className={styles.toggleTextLink}
-              onClick={() => setMode('login')}
-            >
-              Sign In
+            <button type="button" className={styles.footerLink} onClick={() => setMode('login')}>
+              Sign in
             </button>
-          </p>
+          </>
+        ) : mode === 'login' ? (
+          <>
+            Don't have an account?{' '}
+            <button type="button" className={styles.footerLink} onClick={() => setMode('signup')}>
+              Sign up
+            </button>
+          </>
+        ) : (
+          <button type="button" className={styles.footerLink} onClick={() => setMode('login')}>
+            Back to Sign in
+          </button>
         )}
-      </form>
-    </div>
+      </p>
+    </form>
   )
 }
 
@@ -502,72 +307,48 @@ function LoginContent() {
 
   return (
     <div className={styles.page}>
-      {/* Ambient */}
+      {/* Ambient backgrounds */}
       <div className={`${styles.ambient} ${isTM ? styles.ambientTM : styles.ambientTitas}`} aria-hidden />
       <div className={styles.gridBg} aria-hidden />
 
       <div className={styles.card}>
-        {/* Header */}
-        <div className={mode === 'signup' ? styles.cardHeaderCentered : styles.cardHeader}>
-          {mode !== 'signup' && (
-            <div 
-              className={`${styles.logoMark} ${isTM ? styles.tmMark : styles.titasMark}`}
-              style={(isTM || isTitas) ? { overflow: 'hidden', background: '#ffffff', padding: '2px' } : {}}
-            >
-              {isTM ? (
-                <img 
-                  src="/logo/Tm Overseas.png" 
-                  alt="TM" 
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
-                />
-              ) : isTitas ? (
-                <img 
-                  src="/logo/Titas Enterprice.png" 
-                  alt="Titas" 
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
-                />
-              ) : (
-                <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                  <rect x="9" y="2" width="6" height="6" rx="1" />
-                  <rect x="2" y="16" width="6" height="6" rx="1" />
-                  <rect x="16" y="16" width="6" height="6" rx="1" />
-                  <path d="M12 8v4M12 12H5v4M12 12h7v4" />
-                </svg>
-              )}
-            </div>
-          )}
+        {/* Brand logo at the top left if specified */}
+        {(isTM || isTitas) && (
+          <div className={styles.brandHeader}>
+            <img 
+              src={isTM ? "/logo/Tm Overseas.png" : "/logo/Titas Enterprice.png"} 
+              alt="Brand Logo" 
+              className={styles.brandLogo} 
+            />
+            <span className={styles.brandName}>
+              {isTM ? "TM Overseas" : "Titas Enterprise"}
+            </span>
+          </div>
+        )}
 
-          <div>
-            <h1 className={styles.title}>
-              {mode === 'signup' 
-                ? 'Sign Up' 
-                : isTitas 
-                  ? 'Titas Enterprise' 
-                  : isTM 
-                    ? 'TM Overseas' 
-                    : 'TM Business Hub'}
-            </h1>
-            <p className={mode === 'signup' ? styles.signupSubtitle : styles.subtitle}>
-              {mode === 'signup'
-                ? "Let's get started with your 30 days free trial"
+        {/* Card Header (Left-aligned as in reference image) */}
+        <div className={styles.cardHeader}>
+          <h1 className={styles.title}>
+            {mode === 'signup' 
+              ? 'Sign up now' 
+              : mode === 'forgot'
+                ? 'Forgot password'
+                : 'Sign in now'}
+          </h1>
+          <p className={styles.subtitle}>
+            {mode === 'signup'
+              ? 'Create a free account'
+              : mode === 'forgot'
+                ? 'Enter your email to receive a password reset link'
                 : isTitas
                   ? 'Chemical Import Management Portal'
                   : isTM
                     ? 'Manpower Management Portal'
-                    : 'Sign in to access your business portal'}
-            </p>
-          </div>
+                    : 'Access your unified business portal'}
+          </p>
         </div>
 
-        {/* Module badge */}
-        {(isTitas || isTM) && mode !== 'signup' && (
-          <div className={`${styles.moduleBadge} ${isTM ? styles.tmBadge : styles.titasBadge}`}>
-            <span className={styles.moduleDot} />
-            Accessing {isTitas ? 'Titas Enterprise' : 'TM Overseas'} module
-          </div>
-        )}
-
-        {/* Login Form */}
+        {/* Form component */}
         <LoginForm mode={mode} setMode={setMode} module={module} />
 
         {/* Back link */}
@@ -577,12 +358,12 @@ function LoginContent() {
           </a>
         </div>
 
-        {/* Security note */}
+        {/* Security details footer */}
         <div className={styles.secNote}>
           <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
           </svg>
-          Secured with end-to-end encryption & MFA
+          Secured with end-to-end encryption
         </div>
       </div>
     </div>

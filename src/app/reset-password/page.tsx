@@ -86,49 +86,27 @@ function ResetPasswordForm() {
       <div className={styles.gridBg} aria-hidden />
 
       <div className={styles.card}>
-        {/* Header */}
-        <div className={styles.cardHeader}>
-          <div 
-            className={`${styles.logoMark} ${isTM ? styles.tmMark : styles.titasMark}`}
-            style={(isTM || isTitas) ? { overflow: 'hidden', background: '#ffffff', padding: '2px' } : {}}
-          >
-            {isTM ? (
-              <img 
-                src="/logo/Tm Overseas.png" 
-                alt="TM" 
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
-              />
-            ) : isTitas ? (
-              <img 
-                src="/logo/Titas Enterprice.png" 
-                alt="Titas" 
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
-              />
-            ) : (
-              <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <rect x="9" y="2" width="6" height="6" rx="1" />
-                <rect x="2" y="16" width="6" height="6" rx="1" />
-                <rect x="16" y="16" width="6" height="6" rx="1" />
-                <path d="M12 8v4M12 12H5v4M12 12h7v4" />
-              </svg>
-            )}
-          </div>
-
-          <div>
-            <h1 className={styles.title}>Reset Password</h1>
-            <p className={styles.subtitle}>
-              Choose a strong, secure password for your account.
-            </p>
-          </div>
-        </div>
-
-        {/* Module badge */}
-        {(isTitas || isTM) && (
-          <div className={`${styles.moduleBadge} ${isTM ? styles.tmBadge : styles.titasBadge}`}>
-            <span className={styles.moduleDot} />
-            Resetting password for {isTitas ? 'Titas Enterprise' : 'TM Overseas'}
+        {/* Brand header */}
+        {(isTM || isTitas) && (
+          <div className={styles.brandHeader}>
+            <img 
+              src={isTM ? "/logo/Tm Overseas.png" : "/logo/Titas Enterprice.png"} 
+              alt="Brand Logo" 
+              className={styles.brandLogo} 
+            />
+            <span className={styles.brandName}>
+              {isTM ? "TM Overseas" : "Titas Enterprise"}
+            </span>
           </div>
         )}
+
+        {/* Header */}
+        <div className={styles.cardHeader}>
+          <h1 className={styles.title}>Reset Password</h1>
+          <p className={styles.subtitle}>
+            Choose a strong, secure password for your account.
+          </p>
+        </div>
 
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           {error && (
@@ -158,14 +136,14 @@ function ResetPasswordForm() {
 
           {!success && (
             <>
-              <div className="form-group">
-                <label htmlFor="password" className="form-label">New Password</label>
-                <div className={styles.passWrap}>
+              <div className={styles.formGroup}>
+                <label htmlFor="password" className={styles.label}>New Password</label>
+                <div className={styles.passwordWrap}>
                   <input
                     id="password"
                     type={showPass ? 'text' : 'password'}
-                    className="form-input"
-                    placeholder="••••••••"
+                    className={`${styles.input} ${styles.passwordInput}`}
+                    placeholder="New password"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     required
@@ -174,26 +152,27 @@ function ResetPasswordForm() {
                   />
                   <button
                     type="button"
-                    className={styles.showPass}
+                    className={styles.passwordEye}
                     onClick={() => setShowPass(p => !p)}
                     aria-label={showPass ? 'Hide password' : 'Show password'}
                     tabIndex={-1}
                   >
-                    {showPass
-                      ? <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"/></svg>
-                      : <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    }
+                    {showPass ? (
+                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24M1 1l22 22"/></svg>
+                    ) : (
+                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    )}
                   </button>
                 </div>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="confirmPassword" className="form-label">Confirm New Password</label>
+              <div className={styles.formGroup}>
+                <label htmlFor="confirmPassword" className={styles.label}>Confirm New Password</label>
                 <input
                   id="confirmPassword"
                   type={showPass ? 'text' : 'password'}
-                  className="form-input"
-                  placeholder="••••••••"
+                  className={`${styles.input} ${styles.passwordInput}`}
+                  placeholder="Confirm password"
                   value={confirmPassword}
                   onChange={e => setConfirmPassword(e.target.value)}
                   required
@@ -203,9 +182,8 @@ function ResetPasswordForm() {
 
               <button
                 type="submit"
-                className={`btn btn-primary ${styles.submitBtn}`}
+                className={styles.primaryBtn}
                 disabled={loading || !password || !confirmPassword || !!error.includes('No active session')}
-                aria-busy={loading}
               >
                 {loading ? (
                   <>
@@ -226,12 +204,12 @@ function ResetPasswordForm() {
           </div>
         </form>
 
-        {/* Security note */}
+        {/* Security details footer */}
         <div className={styles.secNote}>
           <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
           </svg>
-          Secured with end-to-end encryption & MFA
+          Secured with end-to-end encryption
         </div>
       </div>
     </div>
