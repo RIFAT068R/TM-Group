@@ -15,67 +15,159 @@ const INITIAL_SALES = [
 
 const statusStyle: Record<string,string> = { paid:'badge-success', pending:'badge-warning', overdue:'badge-danger', partial:'badge-info' }
 
+interface SaleItem {
+  id: string
+  invoiceNumber?: string
+  customer: string
+  chemical: string
+  qty: number
+  unit: string
+  buyPrice: number
+  sellPrice: number
+  amount: number
+  profit: number
+  date: string
+  status: string
+}
+
 export default function SalesPage() {
-  const [salesList, setSalesList] = useState(INITIAL_SALES)
+  const [salesList, setSalesList] = useState<SaleItem[]>(INITIAL_SALES)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [showNew, setShowNew] = useState(false)
   const [form, setForm] = useState({ customer:'', chemical:'', qty:'', buyPrice:'', sellPrice:'', date:'', notes:'' })
-  const [viewItem, setViewItem] = useState<typeof INITIAL_SALES[0]|null>(null)
+  const [viewItem, setViewItem] = useState<any | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
 
-  const handleUpdateStatus = (id: string, newStatus: string) => {
+  const fetchSales = async () => {
+    const { createClient } = await import('@/lib/supabase/client')
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('titas_sales')
+      .select('*, titas_customers(name), titas_sale_items(*, titas_chemicals(name, unit))')
+    if (data && !error) {
+      const mapped = data.map((s: any) => {
+        const item = s.titas_sale_items?.[0]
+        return {
+          id: s.id,
+          invoiceNumber: s.invoice_number,
+          customer: s.titas_customers?.name || 'Unknown Customer',
+          chemical: item?.titas_chemicals?.name || 'Unknown Chemical',
+          qty: Number(item?.quantity) || 0,
+          unit: item?.titas_chemicals?.unit || 'kg',
+          buyPrice: Number(item?.purchase_price) || 0,
+          sellPrice: Number(item?.unit_price) || 0,
+          amount: Number(s.total) || 0,
+          profit: Number(item?.profit) || 0,
+          date: s.sale_date || '',
+          status: s.status || 'pending'
+        }
+      })
+      setSalesList(mapped)
+      localStorage.setItem('titas_sales_list', JSON.stringify(mapped))
+    }
+  }
+
+  const handleUpdateStatus = async (id: string, newStatus: string) => {
     setSalesList(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s))
-    setViewItem(prev => {
+    setViewItem((prev: any) => {
       if (prev && prev.id === id) {
         return { ...prev, status: newStatus }
       }
       return prev
     })
+
+    const { isSupabaseConfigured } = await import('@/lib/supabase/client')
+    if (isSupabaseConfigured()) {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('titas_sales')
+        .update({ status: newStatus })
+        .eq('id', id)
+      if (error) {
+        console.error('Failed to update status in Supabase:', error.message)
+      }
+    }
   }
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('titas_sales_list')
-      if (saved) {
-        try { setSalesList(JSON.parse(saved)); } catch (e) {}
-      }
-      setIsLoaded(true)
+    let channel: any
 
-      const checkRole = async () => {
-        const { createClient } = await import('@/lib/supabase/client');
-        const supabase = createClient();
-        const { data } = await supabase.auth.getUser();
-        if (data?.user) {
-          const role = (data.user.user_metadata?.role || data.user.app_metadata?.role || '').toLowerCase();
-          setIsAdmin(role === 'admin');
-        } else {
-          setIsAdmin(false);
+    const setupRealtime = async () => {
+      const { isSupabaseConfigured, createClient } = await import('@/lib/supabase/client')
+      
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('titas_sales_list')
+        if (saved) {
+          try { setSalesList(JSON.parse(saved)); } catch (e) {}
         }
-      };
-      checkRole();
+        setIsLoaded(true)
+      }
 
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('add') === 'true') {
-        setShowNew(true);
-      }
-      const id = params.get('id');
-      if (id) {
-        const found = INITIAL_SALES.find(s => s.id === id);
-        if (found) {
-          setViewItem(found);
-        }
-      }
-      const cust = params.get('customer');
-      if (cust) {
-        setSearch(cust);
+      if (isSupabaseConfigured()) {
+        const supabase = createClient()
+        fetchSales()
+
+        channel = supabase
+          .channel('titas-sales-changes')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'titas_sales' },
+            () => {
+              fetchSales()
+            }
+          )
+          .subscribe()
       }
     }
-  }, []);
+
+    setupRealtime()
+
+    const checkRole = async () => {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      const { data } = await supabase.auth.getUser()
+      if (data?.user) {
+        const role = (data.user.user_metadata?.role || data.user.app_metadata?.role || '').toLowerCase()
+        setIsAdmin(role === 'admin')
+      } else {
+        setIsAdmin(false)
+      }
+    }
+    checkRole()
+
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('add') === 'true') {
+        setShowNew(true)
+      }
+      const id = params.get('id')
+      if (id) {
+        const found = INITIAL_SALES.find(s => s.id === id)
+        if (found) {
+          setViewItem(found)
+        }
+      }
+      const cust = params.get('customer')
+      if (cust) {
+        setSearch(cust)
+      }
+    }
+
+    return () => {
+      if (channel) {
+        const { createClient } = require('@/lib/supabase/client')
+        const supabase = createClient()
+        supabase.removeChannel(channel)
+      }
+    }
+  }, [])
 
   useEffect(() => {
-    if (isLoaded && typeof window !== 'undefined') {
+    const { isSupabaseConfigured } = require('@/lib/supabase/client')
+    if (isLoaded && !isSupabaseConfigured() && typeof window !== 'undefined') {
       localStorage.setItem('titas_sales_list', JSON.stringify(salesList))
     }
   }, [salesList, isLoaded])
@@ -153,7 +245,7 @@ export default function SalesPage() {
           <tbody>
             {filtered.map(sale => (
               <tr key={sale.id}>
-                <td><span className="num" style={{ color:'#60A5FA', fontWeight:600, fontSize:'0.8rem' }}>{sale.id}</span></td>
+                <td><span className="num" style={{ color:'#60A5FA', fontWeight:600, fontSize:'0.8rem' }}>{sale.invoiceNumber || (sale.id.length > 8 ? sale.id.slice(0, 8) : sale.id)}</span></td>
                 <td style={{ fontSize:'0.82rem' }}>{sale.date}</td>
                 <td style={{ fontWeight:500, color:'var(--text-primary)' }}>{sale.customer}</td>
                 <td>{sale.chemical}</td>
@@ -311,34 +403,122 @@ export default function SalesPage() {
               <button className="btn btn-ghost" onClick={()=>setShowNew(false)}>Cancel</button>
               <button
                 className="btn btn-primary"
-                onClick={() => {
+                onClick={async () => {
                   if (!form.customer || !form.chemical || !form.qty || !form.sellPrice) {
                     alert('Please fill out all required fields.');
                     return;
                   }
-                  const newId = `TE-2024-0${salesList.length + 25}`;
+
+                  const { isSupabaseConfigured } = await import('@/lib/supabase/client');
+                  if (!isSupabaseConfigured()) {
+                    const newId = `TE-2024-0${salesList.length + 25}`;
+                    const qtyNum = Number(form.qty) || 0;
+                    const buyNum = Number(form.buyPrice) || 0;
+                    const sellNum = Number(form.sellPrice) || 0;
+                    const amount = qtyNum * sellNum;
+                    const profit = qtyNum * (sellNum - buyNum);
+                    const newSale = {
+                      id: newId,
+                      customer: form.customer,
+                      chemical: form.chemical,
+                      qty: qtyNum,
+                      unit: 'kg',
+                      buyPrice: buyNum,
+                      sellPrice: sellNum,
+                      amount: amount,
+                      profit: profit,
+                      date: form.date || new Date().toISOString().split('T')[0],
+                      status: 'pending'
+                    };
+                    setSalesList([newSale, ...salesList]);
+                    setShowNew(false);
+                    setForm({ customer: '', chemical: '', qty: '', buyPrice: '', sellPrice: '', date: '', notes: '' });
+                    alert('Sale recorded successfully! (Stored in-memory; connect Supabase for permanent storage)');
+                    return;
+                  }
+
+                  const { createClient } = await import('@/lib/supabase/client');
+                  const supabase = createClient();
+
+                  let customerId = null;
+                  const { data: customerData } = await supabase
+                    .from('titas_customers')
+                    .select('id')
+                    .eq('name', form.customer)
+                    .limit(1);
+
+                  if (customerData && customerData.length > 0) {
+                    customerId = customerData[0].id;
+                  } else {
+                    const { data: newCust, error: custErr } = await supabase
+                      .from('titas_customers')
+                      .insert({ name: form.customer, company: form.customer })
+                      .select('id')
+                      .single();
+                    if (!custErr && newCust) {
+                      customerId = newCust.id;
+                    }
+                  }
+
+                  let chemicalId = null;
+                  const { data: chemicalData } = await supabase
+                    .from('titas_chemicals')
+                    .select('id')
+                    .eq('name', form.chemical)
+                    .limit(1);
+
+                  if (chemicalData && chemicalData.length > 0) {
+                    chemicalId = chemicalData[0].id;
+                  } else {
+                    const { data: newChem, error: chemErr } = await supabase
+                      .from('titas_chemicals')
+                      .insert({ name: form.chemical, unit: 'kg' })
+                      .select('id')
+                      .single();
+                    if (!chemErr && newChem) {
+                      chemicalId = newChem.id;
+                    }
+                  }
+
                   const qtyNum = Number(form.qty) || 0;
                   const buyNum = Number(form.buyPrice) || 0;
                   const sellNum = Number(form.sellPrice) || 0;
                   const amount = qtyNum * sellNum;
-                  const profit = qtyNum * (sellNum - buyNum);
-                  const newSale = {
-                    id: newId,
-                    customer: form.customer,
-                    chemical: form.chemical,
-                    qty: qtyNum,
-                    unit: 'kg',
-                    buyPrice: buyNum,
-                    sellPrice: sellNum,
-                    amount: amount,
-                    profit: profit,
-                    date: form.date || new Date().toISOString().split('T')[0],
-                    status: 'pending'
-                  };
-                  setSalesList([newSale, ...salesList]);
+
+                  const { data: newSale, error: saleErr } = await supabase
+                    .from('titas_sales')
+                    .insert({
+                      customer_id: customerId,
+                      status: 'pending',
+                      sale_date: form.date || new Date().toISOString().split('T')[0],
+                      total: amount
+                    })
+                    .select('id')
+                    .single();
+
+                  if (saleErr || !newSale) {
+                    alert('Failed to save sale: ' + saleErr?.message);
+                    return;
+                  }
+
+                  const { error: itemErr } = await supabase
+                    .from('titas_sale_items')
+                    .insert({
+                      sale_id: newSale.id,
+                      chemical_id: chemicalId,
+                      quantity: qtyNum,
+                      unit_price: sellNum,
+                      purchase_price: buyNum
+                    });
+
+                  if (itemErr) {
+                    alert('Failed to save sale items: ' + itemErr.message);
+                    return;
+                  }
+
                   setShowNew(false);
                   setForm({ customer: '', chemical: '', qty: '', buyPrice: '', sellPrice: '', date: '', notes: '' });
-                  alert('Sale recorded successfully! (Stored in-memory; connect Supabase for permanent storage)');
+                  alert('Sale recorded successfully!');
                 }}
               >
                 Record Sale
