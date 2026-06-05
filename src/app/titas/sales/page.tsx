@@ -4,14 +4,6 @@ import Link from 'next/link'
 import CustomSelect from '@/components/CustomSelect'
 import DatePicker from '@/components/DatePicker'
 
-const INITIAL_SALES = [
-  { id:'TE-2024-024', customer:'ACI Limited',           chemical:'Sulfuric Acid',     qty:500, unit:'kg',    buyPrice:85,  sellPrice:120, amount:60000, profit:17500, date:'2024-06-14', status:'paid' },
-  { id:'TE-2024-023', customer:'Square Pharmaceuticals', chemical:'Ethanol',           qty:200, unit:'liter', buyPrice:95,  sellPrice:140, amount:28000, profit:9000,  date:'2024-06-13', status:'paid' },
-  { id:'TE-2024-022', customer:'Renata Limited',         chemical:'Acetone',           qty:150, unit:'liter', buyPrice:72,  sellPrice:105, amount:15750, profit:4950,  date:'2024-06-12', status:'pending' },
-  { id:'TE-2024-021', customer:'BRAC',                   chemical:'Sodium Hydroxide',  qty:300, unit:'kg',    buyPrice:65,  sellPrice:95,  amount:28500, profit:9000,  date:'2024-06-11', status:'paid' },
-  { id:'TE-2024-020', customer:'Bashundhara Group',      chemical:'Methanol',          qty:800, unit:'liter', buyPrice:48,  sellPrice:72,  amount:57600, profit:19200, date:'2024-06-08', status:'paid' },
-  { id:'TE-2024-019', customer:'Padma Chemicals',        chemical:'Hydrochloric Acid', qty:100, unit:'liter', buyPrice:55,  sellPrice:80,  amount:8000,  profit:2500,  date:'2024-06-05', status:'overdue' },
-]
 
 const statusStyle: Record<string,string> = { paid:'badge-success', pending:'badge-warning', overdue:'badge-danger', partial:'badge-info' }
 
@@ -31,7 +23,7 @@ interface SaleItem {
 }
 
 export default function SalesPage() {
-  const [salesList, setSalesList] = useState<SaleItem[]>(INITIAL_SALES)
+  const [salesList, setSalesList] = useState<SaleItem[]>([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [showNew, setShowNew] = useState(false)
@@ -39,33 +31,64 @@ export default function SalesPage() {
   const [viewItem, setViewItem] = useState<any | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
 
-  const fetchSales = async () => {
-    const { createClient } = await import('@/lib/supabase/client')
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('titas_sales')
-      .select('*, titas_customers(name), titas_sale_items(*, titas_chemicals(name, unit))')
-    if (data && !error) {
-      const mapped = data.map((s: any) => {
-        const item = s.titas_sale_items?.[0]
-        return {
-          id: s.id,
-          invoiceNumber: s.invoice_number,
-          customer: s.titas_customers?.name || 'Unknown Customer',
-          chemical: item?.titas_chemicals?.name || 'Unknown Chemical',
-          qty: Number(item?.quantity) || 0,
-          unit: item?.titas_chemicals?.unit || 'kg',
-          buyPrice: Number(item?.purchase_price) || 0,
-          sellPrice: Number(item?.unit_price) || 0,
-          amount: Number(s.total) || 0,
-          profit: Number(item?.profit) || 0,
-          date: s.sale_date || '',
-          status: s.status || 'pending'
-        }
-      })
-      setSalesList(mapped)
-      localStorage.setItem('titas_sales_list', JSON.stringify(mapped))
+  const fetchSales = async (attempt = 1): Promise<boolean> => {
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('titas_sales')
+        .select('*, titas_customers(name), titas_sale_items(*, titas_chemicals(name, unit))')
+        .order('created_at', { ascending: false })
+      if (error) throw new Error(error.message)
+      if (data) {
+        const mapped = data.map((s: any) => {
+          const item = s.titas_sale_items?.[0]
+          return {
+            id: s.id,
+            invoiceNumber: s.invoice_number,
+            customer: s.titas_customers?.name || 'Unknown Customer',
+            chemical: item?.titas_chemicals?.name || 'Unknown Chemical',
+            qty: Number(item?.quantity) || 0,
+            unit: item?.titas_chemicals?.unit || 'kg',
+            buyPrice: Number(item?.purchase_price) || 0,
+            sellPrice: Number(item?.unit_price) || 0,
+            amount: Number(s.total) || 0,
+            profit: Number(item?.profit) || 0,
+            date: s.sale_date || '',
+            status: s.status || 'pending'
+          }
+        })
+        setSalesList(mapped)
+        localStorage.setItem('titas_sales_list', JSON.stringify(mapped))
+        setFetchError(null)
+        return true
+      }
+      return false
+    } catch (err: any) {
+      console.error(`fetchSales attempt ${attempt} failed:`, err.message)
+      if (attempt < 3) {
+        // Retry with exponential backoff
+        await new Promise(res => setTimeout(res, attempt * 1500))
+        return fetchSales(attempt + 1)
+      }
+      // All retries failed — use localStorage as fallback
+      const saved = localStorage.getItem('titas_sales_list')
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved)
+          if (parsed.length > 0) {
+            setSalesList(parsed)
+            setFetchError('⚠️ Showing cached data (last successful sync). Live data unavailable — check your connection.')
+            return false
+          }
+        } catch (e) {}
+      }
+      setFetchError('❌ Could not load sales data. Please check your connection and click Retry.')
+      return false
     }
   }
 
@@ -129,28 +152,33 @@ export default function SalesPage() {
     const setupRealtime = async () => {
       const { isSupabaseConfigured, createClient } = await import('@/lib/supabase/client')
       
+      // Immediately hydrate from localStorage so the page shows data fast
       if (typeof window !== 'undefined') {
         const saved = localStorage.getItem('titas_sales_list')
         if (saved) {
-          try { setSalesList(JSON.parse(saved)); } catch (e) {}
+          try {
+            const parsed = JSON.parse(saved)
+            if (parsed.length > 0) setSalesList(parsed)
+          } catch (e) {}
         }
         setIsLoaded(true)
       }
 
       if (isSupabaseConfigured()) {
         const supabase = createClient()
-        fetchSales()
+        await fetchSales()
+        setIsLoading(false)
 
         channel = supabase
           .channel('titas-sales-changes')
           .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'titas_sales' },
-            () => {
-              fetchSales()
-            }
+            () => { fetchSales() }
           )
           .subscribe()
+      } else {
+        setIsLoading(false)
       }
     }
 
@@ -171,20 +199,9 @@ export default function SalesPage() {
 
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
-      if (params.get('add') === 'true') {
-        setShowNew(true)
-      }
-      const id = params.get('id')
-      if (id) {
-        const found = INITIAL_SALES.find(s => s.id === id)
-        if (found) {
-          setViewItem(found)
-        }
-      }
+      if (params.get('add') === 'true') setShowNew(true)
       const cust = params.get('customer')
-      if (cust) {
-        setSearch(cust)
-      }
+      if (cust) setSearch(cust)
     }
 
     return () => {
@@ -194,7 +211,7 @@ export default function SalesPage() {
         supabase.removeChannel(channel)
       }
     }
-  }, [])
+  }, [retryCount])
 
   useEffect(() => {
     const { isSupabaseConfigured } = require('@/lib/supabase/client')
@@ -202,6 +219,12 @@ export default function SalesPage() {
       localStorage.setItem('titas_sales_list', JSON.stringify(salesList))
     }
   }, [salesList, isLoaded])
+
+  const handleRetry = () => {
+    setIsLoading(true)
+    setFetchError(null)
+    setRetryCount(c => c + 1)
+  }
 
   const filtered = salesList.filter(s =>
     (s.customer.toLowerCase().includes(search.toLowerCase()) || s.chemical.toLowerCase().includes(search.toLowerCase())) &&
@@ -229,6 +252,22 @@ export default function SalesPage() {
           <button className="btn btn-ghost" onClick={handleExportCSV}>Export</button>
         </div>
       </div>
+
+      {/* Connection warning banner */}
+      {fetchError && (
+        <div style={{ marginBottom: '1rem', padding: '0.875rem 1.25rem', borderRadius: '10px', background: fetchError.startsWith('⚠️') ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${fetchError.startsWith('⚠️') ? 'rgba(245,158,11,0.3)' : 'rgba(239,68,68,0.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.875rem', color: fetchError.startsWith('⚠️') ? '#F59E0B' : '#EF4444', fontWeight: 500 }}>{fetchError}</span>
+          <button className="btn btn-sm btn-ghost" onClick={handleRetry} style={{ whiteSpace: 'nowrap' }}>🔄 Retry</button>
+        </div>
+      )}
+
+      {/* Loading spinner */}
+      {isLoading && (
+        <div style={{ textAlign: 'center', padding: '3rem', color: '#64748B' }}>
+          <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem', animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</div>
+          <p style={{ fontSize: '0.875rem' }}>Loading sales data...</p>
+        </div>
+      )}
 
       {/* Summary */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:'1rem', marginBottom:'1.5rem' }}>
