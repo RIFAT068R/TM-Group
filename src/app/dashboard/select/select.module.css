@@ -1,10 +1,10 @@
 /* ============================================================
-   LANDING PAGE MODULE CSS
+   DASHBOARD SELECT PAGE MODULE CSS
    Mobile-first, fully responsive
    ============================================================ */
 
 /* ── Header ── */
-.landingHeader {
+.header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -20,68 +20,43 @@
   gap: 1rem;
 }
 
-[data-theme="dark"] .landingHeader {
+[data-theme="dark"] .header {
   background: rgba(34, 33, 33, 0.85);
 }
 
-.landingLogoWrap {
+.logoWrap {
   display: flex;
   align-items: center;
   flex-shrink: 0;
 }
 
-.landingLogo {
-  height: clamp(60px, 10vw, 90px);
+.logo {
+  height: clamp(55px, 10vw, 90px);
   width: auto;
   object-fit: contain;
   display: block;
 }
 
-.landingNav {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-shrink: 0;
-}
-
-.navLogin {
+.backLink {
   color: var(--text-muted);
   text-decoration: none;
   font-size: 0.88rem;
   font-weight: 600;
   padding: 0.4rem 0.75rem;
   border-radius: var(--radius);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
   transition: color var(--transition), background var(--transition);
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-}
-.navLogin:hover {
-  color: var(--brand-accent);
-  background: var(--brand-accent-soft);
-}
-
-.navSignup {
-  background: var(--text-primary);
-  color: var(--bg);
-  text-decoration: none;
-  font-size: 0.88rem;
-  font-weight: 600;
-  padding: 0.5rem 1.25rem;
-  border-radius: var(--radius);
-  transition: background var(--transition), color var(--transition), transform var(--transition);
-  min-height: 44px;
-  display: flex;
-  align-items: center;
   white-space: nowrap;
 }
-.navSignup:hover {
-  background: var(--brand-accent);
-  transform: translateY(-1px);
+.backLink:hover {
+  color: var(--text-primary);
+  background: var(--surface2);
 }
 
-/* ── Body ── */
-.landingBody {
+/* ── Main ── */
+.main {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -94,25 +69,42 @@
 /* ── Hero text ── */
 .heroText {
   text-align: center;
-  max-width: 600px;
+  max-width: 560px;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 0.35rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: var(--shadow-sm);
 }
 
 .heroTitle {
-  font-size: clamp(1.75rem, 5vw, 2.75rem);
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
   font-weight: 900;
-  letter-spacing: -0.04em;
   color: var(--text-primary);
-  line-height: 1.1;
-  margin-bottom: 0.75rem;
+  letter-spacing: -0.03em;
+  margin: 0;
 }
 
 .heroSub {
-  font-size: clamp(0.875rem, 2vw, 0.95rem);
   color: var(--text-muted);
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  line-height: 1.6;
+  font-size: 0.88rem;
+  margin: 0;
 }
 
 /* ── Card grid ── */
@@ -125,22 +117,21 @@
   flex-wrap: wrap;
 }
 
-/* ── Module card ── */
-.moduleCard {
+/* ── Individual card ── */
+.card {
   text-decoration: none;
   flex: 1 1 280px;
   max-width: 380px;
   min-width: 240px;
   border-radius: 16px;
-  /* Focus styles for keyboard navigation */
   outline-offset: 3px;
 }
 
-.moduleCard:focus-visible {
+.card:focus-visible {
   outline: 2px solid var(--brand-accent);
 }
 
-.moduleCardInner {
+.cardInner {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -150,21 +141,20 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  position: relative;
   overflow: hidden;
   min-height: 240px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 10px 20px rgba(0,0,0,0.01);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 10px 20px rgba(0,0,0,0.02);
   transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
 
-.moduleCard:hover .moduleCardInner,
-.moduleCard:focus-visible .moduleCardInner {
-  border-color: var(--brand-accent);
+.card:hover .cardInner,
+.card:focus-visible .cardInner {
+  border-color: var(--text-primary);
   transform: translateY(-6px);
-  box-shadow: 0 12px 30px rgba(88, 2, 130, 0.12);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
 }
 
 /* ── Logo area ── */
@@ -184,7 +174,7 @@
   transition: transform 0.3s ease;
 }
 
-.moduleCard:hover .logoImg {
+.card:hover .logoImg {
   transform: scale(1.04);
 }
 
@@ -195,8 +185,7 @@
   color: var(--text-primary);
 }
 
-/* ── Module card text ── */
-.moduleTitle {
+.cardTitle {
   font-size: clamp(1rem, 3vw, 1.25rem);
   font-weight: 700;
   color: var(--text-primary);
@@ -206,7 +195,7 @@
   text-align: center;
 }
 
-.moduleDesc {
+.cardDesc {
   font-size: 0.8rem;
   color: var(--text-muted);
   text-align: center;
@@ -214,43 +203,20 @@
 }
 
 /* ── Responsive ── */
-
-/* Tablet */
-@media (max-width: 768px) {
-  .cardGrid {
-    gap: 1.5rem;
-  }
-  .moduleCard {
-    flex: 1 1 240px;
-  }
-}
-
-/* Small mobile */
 @media (max-width: 480px) {
   .cardGrid {
     flex-direction: column;
     align-items: center;
   }
-  .moduleCard {
+  .card {
     width: 100%;
     max-width: 100%;
     min-width: 0;
   }
-  .landingNav {
-    gap: 0.5rem;
-  }
-  .navSignup {
-    padding: 0.5rem 0.875rem;
-    font-size: 0.82rem;
-  }
 }
 
-/* Extra small */
 @media (max-width: 375px) {
-  .landingHeader {
+  .header {
     padding: 0 0.875rem;
-  }
-  .navLogin {
-    display: none; /* hide Login text link on very small screens — Sign Up is primary CTA */
   }
 }

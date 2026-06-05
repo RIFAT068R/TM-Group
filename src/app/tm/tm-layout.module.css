@@ -1,3 +1,7 @@
+/* ============================================================
+   TM LAYOUT MODULE CSS
+   ============================================================ */
+
 .sidebar {
   background: var(--surface);
   border-right: 1px solid var(--border);
@@ -5,12 +9,52 @@
 }
 
 .overlay {
-  position: fixed; inset: 0;
+  position: fixed;
+  inset: 0;
   background: rgba(0, 0, 0, 0.35);
   z-index: 99;
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
+/* ── Workspace switcher button ── */
+.switcherBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border: none;
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  outline: none;
+  text-align: left;
+  transition: background var(--transition);
+  min-height: 64px;
+}
+.switcherBtn:hover {
+  background: var(--surface2);
+}
+.switcherBtn:focus-visible {
+  outline: 2px solid var(--brand-accent);
+  outline-offset: -2px;
+}
+
+.switcherLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.chevron {
+  display: flex;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+/* ── Logo ── */
 .logoMark {
   background: var(--brand-accent);
   border: 1px solid var(--brand-accent);
@@ -32,7 +76,89 @@
   letter-spacing: 0.02em;
 }
 
-/* Nav icon container – minimal & modern without colorful boxes */
+/* ── Switcher dropdown ── */
+.switcherDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 12px;
+  right: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.5rem;
+  box-shadow: var(--shadow-lg);
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.switcherLabel {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.switcherItemActive {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  background: var(--surface2);
+  cursor: default;
+  color: var(--text-primary);
+}
+
+.switcherItemLink {
+  display: flex;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  min-height: 44px;
+}
+.switcherItemLink:hover {
+  background: var(--surface2);
+}
+
+.switcherItemLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.switcherItemName {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.activeDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.inactiveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* ── Nav icon ── */
 .navIcon {
   display: flex;
   align-items: center;
@@ -42,10 +168,9 @@
   height: 24px;
   border-radius: 6px;
   color: var(--text-muted);
-  transition: all 0.15s;
+  transition: color 0.15s;
 }
 
-/* Hover & Active overrides */
 :global(.nav-item:hover) .navIcon {
   color: var(--text-primary);
 }
@@ -60,6 +185,11 @@
   border-color: transparent !important;
 }
 
+.activeItem {
+  font-weight: 600;
+}
+
+/* ── Sidebar bottom ── */
 .sidebarBottom {
   padding: 0.75rem;
   border-top: 1px solid var(--border);
@@ -71,6 +201,7 @@
 .switchBtn {
   font-size: 0.82rem;
   color: var(--text-muted) !important;
+  gap: 0.5rem;
 }
 .switchBtn:hover {
   color: var(--text-primary) !important;
@@ -84,14 +215,18 @@
 }
 
 .userAvatar {
-  width: 32px; height: 32px; flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
   background: var(--brand-accent);
   border: 1px solid var(--brand-accent);
   border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.8rem;
   font-weight: 700;
-  color: #222121;
+  color: #ffffff;
 }
 
 .userInfo { flex: 1; min-width: 0; }
@@ -106,15 +241,26 @@
 .userRole { font-size: 0.7rem; color: var(--text-muted); }
 
 .logoutBtn {
-  background: none; border: none;
-  color: var(--text-muted); cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
   padding: 0.35rem;
   border-radius: 6px;
-  display: flex; align-items: center;
+  display: flex;
+  align-items: center;
   transition: all 0.15s;
+  min-width: 32px;
+  min-height: 32px;
+  justify-content: center;
 }
 .logoutBtn:hover { background: var(--surface2); color: var(--danger); }
+.logoutBtn:focus-visible {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}
 
+/* ── Header ── */
 .menuBtn {
   display: none !important;
 }
@@ -126,6 +272,7 @@
   margin-left: auto;
 }
 
+/* ── Module badge ── */
 .moduleBadge {
   display: flex;
   align-items: center;
@@ -137,18 +284,41 @@
   border: 1px solid var(--brand-accent);
   padding: 0.3rem 0.875rem;
   border-radius: 99px;
+  white-space: nowrap;
 }
 .moduleDot {
-  width: 6px; height: 6px;
+  width: 6px;
+  height: 6px;
   background: var(--brand-accent);
   border-radius: 50%;
   animation: pulse 2s infinite;
+  flex-shrink: 0;
 }
 @keyframes pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(88, 2, 130, 0.4); }
   50%       { box-shadow: 0 0 0 4px rgba(88, 2, 130, 0); }
 }
 
+/* ── Responsive ── */
+
+/* Tablet: show hamburger but module badge still visible */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .moduleBadgeText {
+    display: none;
+  }
+  .moduleBadge {
+    padding: 0.3rem 0.5rem;
+  }
+}
+
+/* Mobile: show hamburger, hide module badge text */
 @media (max-width: 768px) {
   .menuBtn { display: flex !important; }
+  .moduleBadgeText { display: none; }
+  .moduleBadge { padding: 0.3rem 0.5rem; }
+}
+
+/* Extra small: simplify */
+@media (max-width: 480px) {
+  .moduleBadge { display: none; }
 }

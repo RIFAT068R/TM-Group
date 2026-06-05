@@ -2,7 +2,7 @@
    TM BUSINESS HUB — Global Design System (MoneyManage-inspired)
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap');
+/* NOTE: Google Fonts are loaded via <link> in layout.tsx — do NOT re-import here (causes double request) */
 
 /* ─────────────────────────────────────────
    CSS VARIABLES — Design Tokens
@@ -17,7 +17,7 @@
   --border-hover:    #C1C0BF;
   --text-primary:    #222121;
   --text-secondary:  #2A2A2A;
-  --text-muted:      #8E8D8C;
+  --text-muted:      #6B6A69; /* was #8E8D8C — darkened to pass WCAG AA 4.5:1 contrast on white */
 
   /* Brand Accent — Purple */
   --brand-accent:      #580282;
@@ -227,6 +227,17 @@ html {
   font-size: 16px;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 body {
@@ -360,6 +371,9 @@ a:hover { color: var(--titas-primary-h); }
   white-space: nowrap;
   text-decoration: none;
   line-height: 1.4;
+  /* Minimum 44px touch target for mobile (WCAG 2.5.5) */
+  min-height: 44px;
+  touch-action: manipulation;
 }
 .btn:disabled {
   opacity: 0.5;
@@ -578,6 +592,7 @@ a:hover { color: var(--titas-primary-h); }
   overflow: hidden;
   transition: transform var(--transition), box-shadow var(--transition);
   box-shadow: var(--shadow-sm);
+  will-change: transform;
 }
 .kpi-card:hover {
   transform: translateY(-3px);
@@ -602,11 +617,12 @@ a:hover { color: var(--titas-primary-h); }
 }
 .kpi-value {
   font-family: var(--font-mono);
-  font-size: 1.7rem;
+  font-size: clamp(1.3rem, 3vw, 1.7rem);
   font-weight: 800;
   color: var(--text-primary);
   line-height: 1;
   margin-bottom: 0.4rem;
+  word-break: break-all; /* prevent overflow on very small screens */
 }
 
 .kpi-delta {
@@ -693,6 +709,9 @@ a:hover { color: var(--titas-primary-h); }
   transition: all var(--transition);
   text-decoration: none;
   border: 1px solid transparent;
+  /* Minimum 44px touch target height */
+  min-height: 44px;
+  touch-action: manipulation;
 }
 .nav-item:hover {
   background: var(--surface2);
@@ -743,7 +762,8 @@ a:hover { color: var(--titas-primary-h); }
 }
 
 .page-content {
-  padding: 1.75rem;
+  /* Fluid padding: 1rem on mobile → 1.75rem on desktop */
+  padding: clamp(1rem, 4vw, 1.75rem);
   flex: 1;
 }
 
@@ -1080,6 +1100,7 @@ a:hover { color: var(--titas-primary-h); }
   z-index: 900;
   transition: all var(--transition);
   box-shadow: var(--shadow-lg);
+  will-change: transform;
 }
 .ai-chat-fab:hover {
   transform: scale(1.08);
@@ -1089,8 +1110,9 @@ a:hover { color: var(--titas-primary-h); }
   position: fixed;
   bottom: 5rem;
   right: 1.5rem;
-  width: 360px;
-  max-height: 520px;
+  /* Fluid width: 360px on desktop, stays within screen on mobile */
+  width: min(360px, calc(100vw - 2rem));
+  max-height: min(520px, calc(100vh - 7rem));
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
@@ -1133,10 +1155,13 @@ a:hover { color: var(--titas-primary-h); }
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  /* Ensure container doesn't overflow viewport on mobile */
+  max-width: calc(100vw - 2.5rem);
+  pointer-events: none;
 }
 .toast {
   min-width: 280px;
-  max-width: 400px;
+  max-width: min(400px, calc(100vw - 2.5rem));
   padding: 0.875rem 1.125rem;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
@@ -1146,6 +1171,7 @@ a:hover { color: var(--titas-primary-h); }
   align-items: flex-start;
   gap: 0.75rem;
   animation: toast-in 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events: all;
 }
 @keyframes toast-in {
   from { transform: translateX(110%); opacity: 0; }
@@ -1213,8 +1239,38 @@ a:hover { color: var(--titas-primary-h); }
 .divider { height: 1px; background: var(--border); margin: 1rem 0; }
 
 /* ─────────────────────────────────────────
+   SKIP TO CONTENT LINK — Accessibility
+───────────────────────────────────────── */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  z-index: 99999;
+  background: var(--brand-accent);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 0 0 var(--radius) var(--radius);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+.skip-link:focus {
+  top: 0;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* ─────────────────────────────────────────
    RESPONSIVE
 ───────────────────────────────────────── */
+/* ── Tablet (769px–1024px) ── */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .page-content { padding: clamp(1.25rem, 3vw, 1.75rem); }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Mobile (≤768px) ── */
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
@@ -1222,15 +1278,29 @@ a:hover { color: var(--titas-primary-h); }
   }
   .sidebar.open { transform: translateX(0); }
   .main-content { margin-left: 0; }
-  .page-content { padding: 1.25rem; }
+  .page-content { padding: clamp(0.875rem, 4vw, 1.25rem); }
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .page-header { flex-direction: column; align-items: flex-start; }
-  .ai-chat-panel { width: calc(100vw - 2rem); right: 1rem; }
+  /* AI chat panel handled by min() in component styles above */
+  .data-table-wrap { -webkit-overflow-scrolling: touch; }
+  .modal { margin: 0.5rem; max-height: calc(100vh - 1rem); }
+  .chart-card { padding: 1.25rem; }
 }
+
+/* ── Small Mobile (≤480px) ── */
 @media (max-width: 480px) {
   .kpi-grid { grid-template-columns: 1fr; }
   .filter-bar { flex-direction: column; align-items: stretch; }
-  .search-wrap { max-width: 100%; }
+  .search-wrap { max-width: 100%; min-width: 0; }
+  .page-actions { width: 100%; }
+  .page-actions .btn { flex: 1; justify-content: center; }
+  .top-header { padding: 0 1rem; }
+}
+
+/* ── Extra Small (≤375px) ── */
+@media (max-width: 375px) {
+  .kpi-value { font-size: 1.2rem; }
+  .btn-lg { padding: 0.625rem 1.125rem; font-size: 0.9rem; }
 }
 
 /* ─────────────────────────────────────────

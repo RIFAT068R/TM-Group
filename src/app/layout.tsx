@@ -33,9 +33,13 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#07101F',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#FAFCFC' },
+    { media: '(prefers-color-scheme: dark)', color: '#222121' },
+  ],
   width: 'device-width',
   initialScale: 1,
+  maximumScale: 5, // Allow user zoom for accessibility — do NOT restrict to 1
 }
 
 export default function RootLayout({
@@ -44,14 +48,25 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Preconnect for fast font loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Font loading — do NOT also use @import in globals.css (double request) */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap"
+        />
       </head>
       <body>
+        {/* Skip to main content for keyboard / screen reader users */}
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
         {children}
       </body>
     </html>
   )
 }
+
