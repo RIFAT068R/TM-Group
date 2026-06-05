@@ -3,15 +3,15 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import CustomSelect from '@/components/CustomSelect'
 
-const chemicals = [
-  { id: 1, name: 'Sulfuric Acid',      sku: 'TE-CHEM-001', category: 'Acids',    unit: 'kg',    stock: 1200, minStock: 200, price: 85,  status: 'in_stock' },
-  { id: 2, name: 'Sodium Hydroxide',   sku: 'TE-CHEM-002', category: 'Bases',    unit: 'kg',    stock: 850,  minStock: 150, price: 65,  status: 'in_stock' },
-  { id: 3, name: 'Hydrochloric Acid',  sku: 'TE-CHEM-003', category: 'Acids',    unit: 'liter', stock: 120,  minStock: 200, price: 55,  status: 'low_stock' },
-  { id: 4, name: 'Ethanol',            sku: 'TE-CHEM-004', category: 'Solvents', unit: 'liter', stock: 650,  minStock: 100, price: 95,  status: 'in_stock' },
-  { id: 5, name: 'Acetone',            sku: 'TE-CHEM-005', category: 'Solvents', unit: 'liter', stock: 80,   minStock: 150, price: 72,  status: 'low_stock' },
-  { id: 6, name: 'Methanol',           sku: 'TE-CHEM-006', category: 'Solvents', unit: 'liter', stock: 430,  minStock: 100, price: 48,  status: 'in_stock' },
-  { id: 7, name: 'Nitric Acid',        sku: 'TE-CHEM-007', category: 'Acids',    unit: 'liter', stock: 0,    minStock: 100, price: 110, status: 'out_of_stock' },
-  { id: 8, name: 'Calcium Carbonate',  sku: 'TE-CHEM-008', category: 'Salts',    unit: 'kg',    stock: 2100, minStock: 300, price: 32,  status: 'in_stock' },
+const INITIAL_CHEMICALS = [
+  { id: 1, name: 'Sulfuric Acid',      sku: 'TE-CHEM-001', category: 'Acids',    unit: 'kg',    dram: '200 kg', origin: 'China',        stock: 1200, minStock: 200, price: 85,  status: 'in_stock' },
+  { id: 2, name: 'Sodium Hydroxide',   sku: 'TE-CHEM-002', category: 'Bases',    unit: 'kg',    dram: '25 kg',  origin: 'Saudi Arabia', stock: 850,  minStock: 150, price: 65,  status: 'in_stock' },
+  { id: 3, name: 'Hydrochloric Acid',  sku: 'TE-CHEM-003', category: 'Acids',    unit: 'liter', dram: '250L',   origin: 'India',        stock: 120,  minStock: 200, price: 55,  status: 'low_stock' },
+  { id: 4, name: 'Ethanol',            sku: 'TE-CHEM-004', category: 'Solvents', unit: 'liter', dram: '200L',   origin: 'Malaysia',     stock: 650,  minStock: 100, price: 95,  status: 'in_stock' },
+  { id: 5, name: 'Acetone',            sku: 'TE-CHEM-005', category: 'Solvents', unit: 'liter', dram: '160 kg', origin: 'India',        stock: 80,   minStock: 150, price: 72,  status: 'low_stock' },
+  { id: 6, name: 'Methanol',           sku: 'TE-CHEM-006', category: 'Solvents', unit: 'liter', dram: '200L',   origin: 'China',        stock: 430,  minStock: 100, price: 48,  status: 'in_stock' },
+  { id: 7, name: 'Nitric Acid',        sku: 'TE-CHEM-007', category: 'Acids',    unit: 'liter', dram: '250 kg', origin: 'Germany',      stock: 0,    minStock: 100, price: 110, status: 'out_of_stock' },
+  { id: 8, name: 'Calcium Carbonate',  sku: 'TE-CHEM-008', category: 'Salts',    unit: 'kg',    dram: '25 kg',  origin: 'Bangladesh',   stock: 2100, minStock: 300, price: 32,  status: 'in_stock' },
 ]
 
 const statusStyles: Record<string, { label: string; cls: string }> = {
@@ -21,11 +21,18 @@ const statusStyles: Record<string, { label: string; cls: string }> = {
 }
 
 export default function ChemicalsPage() {
+  const [chemicalsList, setChemicalsList] = useState(INITIAL_CHEMICALS)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [showModal, setShowModal] = useState(false)
-  const [form, setForm] = useState({ name:'', sku:'', category:'Acids', unit:'kg', minStock:'' })
+  const [form, setForm] = useState({ name:'', sku:'', category:'Acids', unit:'kg', minStock:'', dram:'', origin:'' })
   const [isAdmin, setIsAdmin] = useState(false)
+
+  const handleDeleteChemical = (id: number) => {
+    if (window.confirm('Are you sure you want to delete this chemical?')) {
+      setChemicalsList(chemicalsList.filter(c => c.id !== id))
+    }
+  }
 
   useEffect(() => {
     const checkRole = async () => {
@@ -42,7 +49,7 @@ export default function ChemicalsPage() {
     checkRole();
   }, []);
 
-  const filtered = chemicals.filter(c =>
+  const filtered = chemicalsList.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) &&
     (category ? c.category === category : true)
   )
@@ -59,7 +66,7 @@ export default function ChemicalsPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Chemical Catalog</h1>
-          <p className="page-subtitle">{chemicals.length} chemicals registered · {chemicals.filter(c=>c.status==='low_stock').length} low stock alerts</p>
+          <p className="page-subtitle">{chemicalsList.length} chemicals registered · {chemicalsList.filter(c=>c.status==='low_stock').length} low stock alerts</p>
         </div>
         <div className="page-actions">
           {isAdmin && (
@@ -96,12 +103,12 @@ export default function ChemicalsPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Chemical Name</th><th>SKU</th><th>Category</th><th>Unit</th><th>Current Stock</th><th>Min Stock</th><th>Buy Price (৳)</th><th>Status</th><th>Actions</th>
+              <th>Chemical Name</th><th>SKU</th><th>Category</th><th>Unit</th><th>Dram</th><th>Origin</th><th>Current Stock</th><th>Min Stock</th><th>Buy Price (৳)</th><th>Status</th><th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
-              <tr><td colSpan={9}>
+              <tr><td colSpan={11}>
                 <div className="empty-state">
                   <div className="empty-icon">🧪</div>
                   <h3>No chemicals found</h3>
@@ -115,6 +122,8 @@ export default function ChemicalsPage() {
                 <td><span className="num" style={{ fontSize:'0.78rem', color:'#64748B' }}>{c.sku}</span></td>
                 <td><span className="badge badge-info">{c.category}</span></td>
                 <td>{c.unit}</td>
+                <td>{c.dram || '—'}</td>
+                <td>{c.origin || '—'}</td>
                 <td className="num" style={{ fontWeight:600, color: c.status === 'low_stock' ? '#F59E0B' : c.status === 'out_of_stock' ? '#EF4444' : 'var(--text-primary)' }}>
                   {c.stock.toLocaleString()}
                 </td>
@@ -124,7 +133,7 @@ export default function ChemicalsPage() {
                 <td>
                   <div style={{ display:'flex', gap:'0.4rem' }}>
                     <button className="btn btn-ghost btn-sm" aria-label={`Edit ${c.name}`}>✏️</button>
-                    <button className="btn btn-danger btn-sm" aria-label={`Delete ${c.name}`}>🗑️</button>
+                    <button className="btn btn-danger btn-sm" onClick={() => handleDeleteChemical(c.id)} aria-label={`Delete ${c.name}`}>🗑️</button>
                   </div>
                 </td>
               </tr>
@@ -177,11 +186,50 @@ export default function ChemicalsPage() {
                   <input id="chem-min" type="number" className="form-input" placeholder="100" value={form.minStock} onChange={e => setForm({...form, minStock:e.target.value})} />
                   <span className="form-hint">Alert when stock drops below this</span>
                 </div>
+                <div className="form-group">
+                  <label htmlFor="chem-dram" className="form-label">Dram</label>
+                  <input id="chem-dram" className="form-input" placeholder="e.g. 200 kg" value={form.dram} onChange={e => setForm({...form, dram:e.target.value})} />
+                  <span className="form-hint">Packaging size / capacity</span>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="chem-origin" className="form-label">Origin</label>
+                  <input id="chem-origin" className="form-input" placeholder="e.g. China" value={form.origin} onChange={e => setForm({...form, origin:e.target.value})} />
+                  <span className="form-hint">Country of origin</span>
+                </div>
               </div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={() => { alert('Chemical added! (Connect Supabase to save)'); setShowModal(false); }}>Add Chemical</button>
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  if (!form.name.trim()) {
+                    alert('Chemical Name is required.');
+                    return;
+                  }
+                  const newId = chemicalsList.length + 1;
+                  const newSku = form.sku.trim() || `TE-CHEM-${String(newId).padStart(3, '0')}`;
+                  const newChem = {
+                    id: newId,
+                    name: form.name.trim(),
+                    sku: newSku,
+                    category: form.category,
+                    unit: form.unit,
+                    dram: form.dram.trim() || '—',
+                    origin: form.origin.trim() || '—',
+                    stock: 0,
+                    minStock: Number(form.minStock) || 0,
+                    price: 0,
+                    status: 'out_of_stock'
+                  };
+                  setChemicalsList([...chemicalsList, newChem]);
+                  setShowModal(false);
+                  setForm({ name: '', sku: '', category: 'Acids', unit: 'kg', minStock: '', dram: '', origin: '' });
+                  alert('Chemical added successfully! (Stored in-memory; connect Supabase for permanent storage)');
+                }}
+              >
+                Add Chemical
+              </button>
             </div>
           </div>
         </div>
