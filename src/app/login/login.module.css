@@ -265,3 +265,223 @@
   text-decoration: underline;
 }
 
+/* ── Signup Mockup Custom Design ── */
+.cardHeaderCentered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.signupSubtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-top: 0.35rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.floatingField {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1.25rem;
+}
+
+.floatingInput {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-size: 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.floatingInput:hover {
+  border-color: var(--border-hover);
+}
+
+.floatingInput:focus {
+  border-color: #0ea5e9; /* Sky blue focus border matching screen 2 */
+  box-shadow: 0 0 0 1px #0ea5e9;
+}
+
+.floatingLabel {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--surface);
+  padding: 0 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  pointer-events: none;
+  transition: all 0.15s ease-out;
+}
+
+.floatingInput:focus ~ .floatingLabel,
+.floatingInput:not(:placeholder-shown) ~ .floatingLabel {
+  top: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.floatingInput:focus ~ .floatingLabel {
+  color: #0ea5e9; /* Sky blue active label */
+}
+
+.floatingInput:not(:focus):not(:placeholder-shown) ~ .floatingLabel {
+  color: var(--text-muted);
+}
+
+.passwordInput {
+  padding-right: 2.75rem;
+}
+
+.passwordEye {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+.passwordEye:hover {
+  color: var(--text-primary);
+}
+
+.socialBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.825rem 1rem;
+  font-size: 0.925rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 0.75rem;
+}
+
+.googleBtn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+.googleBtn:hover {
+  background: var(--surface2);
+  border-color: var(--border-hover);
+}
+
+.emailBtn {
+  background: #2f3d52; /* dark navy matching screen 1 */
+  border: 1px solid #2f3d52;
+  color: #ffffff;
+}
+.emailBtn:hover {
+  background: #202b3a;
+  border-color: #202b3a;
+}
+
+.primaryBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.825rem 1rem;
+  font-size: 0.925rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #2f3d52; /* dark navy */
+  border: 1px solid #2f3d52;
+  color: #ffffff;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+}
+.primaryBtn:hover:not(:disabled) {
+  background: #202b3a;
+  border-color: #202b3a;
+}
+.primaryBtn:disabled {
+  background: var(--surface2);
+  border-color: var(--border);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 1.25rem 0;
+  width: 100%;
+}
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border);
+}
+.divider:not(:empty)::before {
+  margin-right: 1rem;
+}
+.divider:not(:empty)::after {
+  margin-left: 1rem;
+}
+
+.toggleText {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.toggleTextLink {
+  color: #2563eb;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  transition: color 0.15s;
+}
+.toggleTextLink:hover {
+  text-decoration: underline;
+  color: #1d4ed8;
+}
+
+.termsText {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.45;
+  margin-top: 1.75rem;
+}
+.termsText a {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+.termsText a:hover {
+  text-decoration: underline;
+}
+
+
